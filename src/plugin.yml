@@ -1,0 +1,8 @@
+name: Zombies
+main: jp.risu87.hzp.HypixelZombiesProject
+version: 0.0.11
+commands:
+  hzp:
+    description: Zombies command
+    usage:
+    permission:
