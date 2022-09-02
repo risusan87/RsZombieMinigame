@@ -49,7 +49,7 @@ public final class AILookAtFarPlayer extends AIBase {
 	
 	@Override
 	public void onUpdate() {
-		double x = target.locX, y = target.locX + target.getHeadHeight(), z = target.locX;
+		double x = target.locX, y = target.locY + target.getHeadHeight(), z = target.locX;
 		this.holder.getControllerLook().a(x, y, z, 10, 40);
 	}
 }
