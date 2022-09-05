@@ -40,6 +40,7 @@ public abstract class GunBase {
 	protected final Item rawItem;
 	protected final Map<String, Float[]> gunAttribute;
 	protected final Player holder;
+	protected final int gunSlot;
 
 	/** Time in second that this gun takes to reload */
 	public static final String RELOAD_TIME = "reloadTime";
@@ -90,8 +91,9 @@ public abstract class GunBase {
 	 * @param maxUlt - Maximum Level of ultimate that this gun could be.
 	 * @param rawItem - Vanilla item that represents as this particular gun.
 	 */
-	protected GunBase(Player owner, String gunName, int maxUlt, Item rawItem) {
+	protected GunBase(Player owner, String gunName, int maxUlt, Item rawItem, int slot) {
 		
+		this.gunSlot = slot;
 		this.toleratedTime = this.getToleratedTime();
 		this.gunID = UUID.randomUUID().toString();
 		this.holder = owner;
@@ -107,9 +109,9 @@ public abstract class GunBase {
 	/**
 	 * returns true if this shoot was last in clip
 	 */
-	protected abstract boolean eachShot(int slotID);
+	protected abstract boolean eachShot();
 
-	protected abstract void onShoot(int slotID);
+	protected abstract void onShoot();
 	
 	protected abstract Vector getKnockbackVec();
 	
@@ -135,7 +137,7 @@ public abstract class GunBase {
 		return att;
 	};
 
-	public final void shoot(int slotID) {
+	public final void shoot() {
 		
 		if (this.isReloading) 
 			return;
@@ -188,12 +190,13 @@ public abstract class GunBase {
 
 		};
 		this.intervalTaskID = schedular.scheduleSyncRepeatingTask(plugin, r, 0, 1);
-
-		this.onShoot(slotID);
+		
+		
+		this.onShoot();
 
 	}
 
-	public final void reload(Player holder, int slotID) {
+	public final void reload() {
 		
 		if (this.isReloading) 
 			return;
@@ -202,6 +205,8 @@ public abstract class GunBase {
 			return;
 
 		this.isReloading = true;
+		
+		this.updateGun();
 		
 		ChatJsonBuilder cjb = new ChatJsonBuilder();
 		cjb.withText("RELOADING");
@@ -226,7 +231,7 @@ public abstract class GunBase {
 						schedular.cancelTask(gun.reloadTaskID);
 						gun.currentClip = (int)gun.getAttribute(MAX_CLIP_AMMO);
 						
-						gun.updateGun();
+						updateGun();
 						
 						gun.actionBarText.setTextVisible(false);
 						gun.actionBarText = null;
@@ -236,7 +241,7 @@ public abstract class GunBase {
 					}
 					count++;
 					float progress = (float)count / (float)goalCount;
-					holder.getInventory().getItem(slotID).setDurability((short)(maxDurability * (1f - progress)));
+					holder.getInventory().getItem(gun.gunSlot).setDurability((short)(maxDurability * (1f - progress)));
 				} catch (Exception e) {
 					// リロードバグ
 					e.printStackTrace();
@@ -252,6 +257,17 @@ public abstract class GunBase {
 
 	public float getAttribute(String value) {
 		return this.gunAttribute.get(value)[this.ultLv];
+	}
+	
+	protected static GunBase createGun(Player owner, int slot, GunType gunType) {
+		
+		switch (gunType) {
+			case PISTOL:
+				return new GunPistol(owner, slot);
+			default:
+				return null;
+		}
+		
 	}
 	
 	/**
@@ -273,26 +289,19 @@ public abstract class GunBase {
 
 	public void setUltLv(int lv) {
 		this.ultLv = lv;
-		int slot = -1;
-		for (ItemStack item : holder.getInventory().getContents()) {
-			NBTTagCompound tag = CraftItemStack.asNMSCopy(item).getTag();
-			if (tag != null && tag.hasKey("gunID") && tag.getString("gunID").equals(this.gunID)) {
-				slot = holder.getInventory().first(item);
-			}
-		}
 		this.currentAmmo = (int)this.getAttribute(MAX_AMMO);
 		this.currentClip = (int)this.getAttribute(MAX_CLIP_AMMO);
 		PermissionRule.getPermissionRule().removePermission(holder, PermissionRule.HZP_FLAG_SHOULD_NOT_HEAR_XP_SOUND);
 		holder.playSound(holder.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.5f, 1.0f);
 		PermissionRule.getPermissionRule().addPermission(holder, PermissionRule.HZP_FLAG_SHOULD_NOT_HEAR_XP_SOUND);
-		holder.getInventory().setItem(slot, this.updateGun());
+		this.updateGun();
 	}
 	
 	public int getUltLv() {
 		return this.ultLv;
 	}
 	
-	public void onGunHeld() {
+	public void onGunHeld(int slot) {
 		
 		if (this.actionBarText != null) 
 			this.actionBarText.setTextVisible(true);
@@ -304,7 +313,7 @@ public abstract class GunBase {
 		
 	}
 	
-	public void onGunNotHeld() {
+	public void onGunNotHeld(int slot) {
 		
 		if (this.actionBarText != null) 
 			this.actionBarText.setTextVisible(false);
@@ -315,10 +324,16 @@ public abstract class GunBase {
 		
 		
 	}
-
-	public final ItemStack updateGun() {
+	
+	/**
+	 * Checks if everything is on track 
+	 * @return
+	 */
+	public final void updateGun() {
 		
 		ItemStack gun = this.getGun();
+		
+		PermissionRule.getPermissionRule().addPermission(holder, PermissionRule.HZP_FLAG_SHOULD_NOT_HEAR_XP_SOUND);
 		
 		gun.setAmount(this.currentClip);
 		if (this.ultLv > 0) {
@@ -332,7 +347,9 @@ public abstract class GunBase {
 		int xp = holder.getLevel();
 		int delta = this.currentAmmo - xp;
 		holder.giveExpLevels(delta);
-		return gun;
+		
+		holder.getInventory().setItem(this.gunSlot, gun);
+		
 	}
 
 	protected void spawnParticle(Particle p, Player holder) {
@@ -457,13 +474,13 @@ public abstract class GunBase {
 					int i = (int)(burstInterval * 20f);
 					if (count % (i == 0 ? 1 : i) == 0) {
 
-						if (controller.eachShot(gunSlot)) {
-							controller.reload(holder, gunSlot);
+						if (controller.eachShot()) {
+							controller.reload();
 							schedular.cancelTask(bs.taskID);
 							return;
 						}
 						burst++;
-						holder.getInventory().setItem(gunSlot, controller.updateGun());
+						controller.updateGun();
 					}
 
 					if (burst >= burstCount) {
