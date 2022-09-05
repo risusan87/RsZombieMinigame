@@ -1,138 +1,234 @@
 package jp.risu87.hzp.gamerule.gun;
 
-import java.util.Collection;
-import java.util.UUID;
-import java.util.function.Function;
+import jp.risu87.hzp.HypixelZombiesProject;
+import jp.risu87.hzp.gamerule.PermissionRule;
+import jp.risu87.hzp.util.ActionBarConstructor;
+import jp.risu87.hzp.util.ChatJsonBuilder;
+import net.minecraft.server.v1_12_R1.Item;
+import net.minecraft.server.v1_12_R1.NBTTagCompound;
 
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.craftbukkit.v1_12_R1.inventory.CraftItemStack;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.util.Vector;
 
-import jp.risu87.hzp.HypixelZombiesProject;
-import net.minecraft.server.v1_12_R1.Item;
-import net.minecraft.server.v1_12_R1.NBTTagCompound;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+import java.util.function.Function;
 
-/*
- * ver 0.0.20 
- * - EntityFinder追加
- * 
- * ver 0.0.21 
- * - クリップ弾数満タンの時にリロード出来てしまうバグを改善
- * - パーティクルが謎の挙動になってしまうバグを改善
- * - JavaDocほぼ完成
+/**
+ * Abstract class of all gun
+ * @author risu87
  */
 public abstract class GunBase {
 
-	protected final Item rawItem;
 	public final String gunName;
-
-	/*=GUN STATUS=*/
+	public final String gunID; 
+	protected final Item rawItem;
+	protected final Map<String, Float[]> gunAttribute;
+	protected final Player holder;
 
 	/** Time in second that this gun takes to reload */
-	protected float[] reloadTime;
+	public static final String RELOAD_TIME = "reloadTime";
 
 	/** Time in second of cool down to trigger a shoot */
-	protected float[] interval;
+	public static final String SHOOT_INTERVAL = "interval";
 
 	/** Maximum amount of ammo that this gun carries */
-	protected int[] maxAmmo;
+	public static final String MAX_AMMO = "maxAmmo";
 
 	/** Maximum amount of clip ammo that this gun carries */
-	protected int[] maxClip;
+	public static final String MAX_CLIP_AMMO = "maxClipAmmo";
 
 	/** Time in second of cool down between each shoot when burst mode */
-	protected float[] burstInterval;
+	public static final String BURST_INTERVAL = "burstInterval";
 
 	/** Number of burst for this gun. Set of 1 means no burst */
-	protected int[] burstCount;
+	public static final String BURST_COUNT = "burstCount";
 
-	/*============*/
+	public static final String BASE_DAMAGE = "baseDamage";
+
+	public static final String GOLD_PER_HIT = "goldPerHit";
+	
+	public static final String KNOCKBACK_POWER = "knockbackPower";
 
 	protected int currentAmmo;
 	protected int currentClip;
-	protected final int maxUlt;
+	public final int maxUlt;
 	protected int ultLv;
 
 	protected boolean isReloading = false;
-	private long lastShoot = -1L;
+	protected boolean onCooldown = false;
+	
+	private long lastShot = -1l;
 	private int reloadTaskID = -1;
+	private int intervalTaskID = -1;
+	private float xpBarProgress = 1.0f;
+	private ActionBarConstructor actionBarText = null;
+	private int torelatedTime;
 
 	/**
 	 * Inherited classes MUST set their gun status 
 	 * for each level of ultimate in their constructors.
 	 * 
+	 * Override {@link GunBase#setGunAttribute()} to set these values.
+	 * 
 	 * @param gunName - The global identifier used to differentiate from other guns.
 	 * @param maxUlt - Maximum Level of ultimate that this gun could be.
 	 * @param rawItem - Vanilla item that represents as this particular gun.
 	 */
-	protected GunBase(String gunName, int maxUlt, Item rawItem) {
-
+	protected GunBase(Player owner, String gunName, int maxUlt, Item rawItem) {
+		
+		this.torelatedTime = this.getTorelatedTime();
+		this.gunID = UUID.randomUUID().toString();
+		this.holder = owner;
+		
 		this.gunName = gunName;
 		this.maxUlt = maxUlt;
 		this.rawItem = rawItem;
 
-		this.interval = new float[maxUlt];
-		this.reloadTime = new float[maxUlt];
-		this.maxAmmo = new int[maxUlt];
-		this.maxClip = new int[maxUlt];
-		this.burstInterval = new float[maxUlt];
-		this.burstCount = new int[maxUlt];
+		this.gunAttribute = this.setGunAttribute();
 
 	}
 
-	public final void shoot(Player holder) {
+	/**
+	 * returns true if this shoot was last in clip
+	 */
+	protected abstract boolean eachShot(int slotID);
 
-		if (lastShoot != -1L) {
-			long timeLeap = System.currentTimeMillis() - lastShoot;
-			long defInt = (long) Math.floor(this.interval[this.ultLv] * 1e3F);
-			if (timeLeap < defInt) return;
+	protected abstract void onShoot(int slotID);
+	
+	protected abstract Vector getKnockbackVec();
+	
+	/**
+	 * This is the most important method to override in child classes.
+	 * The returned map of this method will contain everything needed to characterize each guns.
+	 * 
+	 * The default map will return an attribute of Pistol, to prevent null pointers in default.
+	 * 
+	 * @return Map object contains an attribute of Pistol.
+	 */
+	protected Map<String, Float[]> setGunAttribute() {
+		Map<String, Float[]> att = new HashMap<String, Float[]>(8);
+		att.put(RELOAD_TIME, new Float[] {1.5f, 1.0f});
+		att.put(SHOOT_INTERVAL, new Float[] {0.5f, 0.4f});
+		att.put(MAX_AMMO, new Float[] {300.f, 450.f});
+		att.put(MAX_CLIP_AMMO, new Float[] {10.f, 14.f});
+		att.put(BURST_COUNT, new Float[] {1f, 2f});
+		att.put(BURST_INTERVAL, new Float[] {0.f, 0.1f});
+		att.put(BASE_DAMAGE, new Float[] {3.f, 3.f});
+		att.put(GOLD_PER_HIT, new Float[] {10.f, 10.f});
+		att.put(KNOCKBACK_POWER, new Float[] {0.2f, 0.3f});
+		return att;
+	};
+
+	public final void shoot(int slotID) {
+		
+		if (this.isReloading) 
+			return;
+		
+		HypixelZombiesProject plugin = HypixelZombiesProject.getPlugin();
+		BukkitScheduler schedular = plugin.getServer().getScheduler();
+		if (this.onCooldown) {
+			long remaining = (long)(this.getAttribute(SHOOT_INTERVAL) * 1000f) - (System.currentTimeMillis() - this.lastShot);
+			
+			if (remaining < this.torelatedTime && remaining > -this.torelatedTime) {
+				System.out.println("remaining " + remaining + " millisec torelated");
+				schedular.cancelTask(this.intervalTaskID);
+			} else
+				return;
 		}
+		
+		this.onCooldown = true;
+		this.lastShot = System.currentTimeMillis();
+		
+		final GunBase gun = this;
+		final int goalCount = (int)Math.ceil(gun.getAttribute(SHOOT_INTERVAL) * 20.f);
+		Runnable r = new Runnable() {
 
-		if (this.isReloading) 
-			return;
+			int count = 0;
 
-		lastShoot = System.currentTimeMillis();
+			@Override
+			public void run() {
+				try {
+					if (count >= goalCount) {
+						schedular.cancelTask(gun.intervalTaskID);
+						gun.onCooldown = false;
+						return;
+					}
+					count++;
+					gun.xpBarProgress = (float)count / (float)goalCount;
+					if (gun.holder.isDead()) 
+						return;
+					ItemStack itemGun = gun.holder.getInventory().getItemInMainHand();
+					NBTTagCompound tag = CraftItemStack.asNMSCopy(itemGun).getTag();
+					if (tag != null && tag.hasKey("gunType") && tag.getString("gunID").equals(gun.gunID)) {
+						gun.holder.setExp(gun.xpBarProgress);
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
+					schedular.cancelTask(gun.reloadTaskID);
+				}
 
-		this.onShoot(holder);
+			}
+
+		};
+		this.intervalTaskID = schedular.scheduleSyncRepeatingTask(plugin, r, 0, 1);
+
+		this.onShoot(slotID);
 
 	}
 
-	public final void reload(Player holder) {
+	public final void reload(Player holder, int slotID) {
 		
 		if (this.isReloading) 
 			return;
-		
-		if (this.currentClip == this.maxClip[this.ultLv])
+
+		if (this.currentClip == (int)this.getAttribute(MAX_CLIP_AMMO))
 			return;
-		
+
 		this.isReloading = true;
 		
-		final int slotID = holder.getInventory().getHeldItemSlot();
+		ChatJsonBuilder cjb = new ChatJsonBuilder();
+		cjb.withText("RELOADING");
+		cjb.withColor(ChatColor.RED);
+		this.actionBarText = ActionBarConstructor.constractActionBarText(cjb);
+		this.actionBarText.addViewers(holder);
+		this.actionBarText.setTextVisible(true);
+		
 		final GunBase gun = this;
-		final int goalCount = (int)Math.ceil(GunBase.this.reloadTime[GunBase.this.ultLv] * 20.f);
+		final int goalCount = (int)Math.ceil(gun.getAttribute(RELOAD_TIME) * 20.f);
 		final short maxDurability = holder.getInventory().getItemInMainHand().getType().getMaxDurability();
 		HypixelZombiesProject plugin = HypixelZombiesProject.getPlugin();
 		BukkitScheduler schedular = plugin.getServer().getScheduler();
 		Runnable r = new Runnable() {
-			
+
 			int count = 0;
-			
+
 			@Override
 			public void run() {
 				try {
 					if (count >= goalCount) {
 						schedular.cancelTask(gun.reloadTaskID);
-						gun.currentClip = gun.maxClip[gun.ultLv];
-						ItemStack newGun = holder.getInventory().getItem(slotID);
-						holder.getInventory().setItem(slotID, gun.updateGun(newGun));
+						gun.currentClip = (int)gun.getAttribute(MAX_CLIP_AMMO);
+						holder.getInventory().setItem(slotID, gun.updateGun());
+						
+						gun.actionBarText.setTextVisible(false);
+						gun.actionBarText = null;
+						
 						gun.isReloading = false;
 						return;
 					}
@@ -152,30 +248,89 @@ public abstract class GunBase {
 		this.reloadTaskID = schedular.scheduleSyncRepeatingTask(plugin, r, 0, 1);
 	}
 
+	public float getAttribute(String value) {
+		return this.gunAttribute.get(value)[this.ultLv];
+	}
+	
 	/**
-	 * returns true if this shoot was last in clip
+	 * +/- torelated time in millisec.
+	 * @return
 	 */
-	protected abstract boolean eachShot(Player holder);
+	protected int getTorelatedTime() {
+		return 25;
+	}
 
-	public ItemStack getGun() {
+	private ItemStack getGun() {
 		net.minecraft.server.v1_12_R1.ItemStack nmsGun = new net.minecraft.server.v1_12_R1.ItemStack(rawItem);
 		NBTTagCompound nbt = new NBTTagCompound();
 		nbt.setString("gunType", this.gunName);
-		nbt.setString("gunID", UUID.randomUUID().toString());
+		nbt.setString("gunID", this.gunID);
 		nmsGun.setTag(nbt);
-		ItemStack bGun = CraftItemStack.asBukkitCopy(nmsGun);
-		bGun.setAmount(this.currentClip);
-		System.out.println(this.currentClip);
-		return bGun;
+		return CraftItemStack.asBukkitCopy(nmsGun);
 	}
 
 	public void setUltLv(int lv) {
-		this.setUltLv(lv);
+		this.ultLv = lv;
+		int slot = -1;
+		for (ItemStack item : holder.getInventory().getContents()) {
+			NBTTagCompound tag = CraftItemStack.asNMSCopy(item).getTag();
+			if (tag != null && tag.hasKey("gunID") && tag.getString("gunID").equals(this.gunID)) {
+				slot = holder.getInventory().first(item);
+			}
+		}
+		this.currentAmmo = (int)this.getAttribute(MAX_AMMO);
+		this.currentClip = (int)this.getAttribute(MAX_CLIP_AMMO);
+		PermissionRule.getPermissionRule().removePermission(holder, PermissionRule.HZP_FLAG_SHOULD_NOT_HEAR_XP_SOUND);
+		holder.playSound(holder.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.5f, 1.0f);
+		PermissionRule.getPermissionRule().addPermission(holder, PermissionRule.HZP_FLAG_SHOULD_NOT_HEAR_XP_SOUND);
+		holder.getInventory().setItem(slot, this.updateGun());
+	}
+	
+	public int getUltLv() {
+		return this.ultLv;
+	}
+	
+	public void onGunHeld() {
+		
+		if (this.actionBarText != null) 
+			this.actionBarText.setTextVisible(true);
+		
+		int xp = holder.getExpToLevel();
+		int delta = this.currentAmmo - xp;
+		holder.giveExpLevels(delta);
+		holder.setExp(this.xpBarProgress);
+		
+	}
+	
+	public void onGunNotHeld() {
+		
+		if (this.actionBarText != null) 
+			this.actionBarText.setTextVisible(false);
+		
+		int xp = holder.getExpToLevel();
+		holder.giveExpLevels(-xp);
+		holder.setExp(1f);
+		
+		
 	}
 
-	protected ItemStack updateGun(ItemStack prevGun) {
-		prevGun.setAmount(this.currentClip);
-		return prevGun.clone();
+	public final ItemStack updateGun() {
+		
+		ItemStack gun = this.getGun();
+		
+		gun.setAmount(this.currentClip);
+		if (this.ultLv > 0) {
+			gun.addUnsafeEnchantment(Enchantment.ARROW_INFINITE, 1);
+			ItemMeta meta = gun.getItemMeta();
+			meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+			gun.setItemMeta(meta);
+		} else {
+			gun.removeEnchantment(Enchantment.ARROW_INFINITE);
+		}
+		int xp = holder.getLevel();
+		int delta = this.currentAmmo - xp;
+		holder.giveExpLevels(delta);
+		return gun;
 	}
 
 	protected void spawnParticle(Particle p, Player holder) {
@@ -185,11 +340,35 @@ public abstract class GunBase {
 
 		for (float f = 1f; f < 6f; f++) {
 			Location l = currentLoc.clone().add(lookVec.clone().multiply(f));
-			double x = l.getX();
-			double y = l.getY();
-			double z = l.getZ();
-			holder.getWorld().spawnParticle(Particle.CRIT, x, y, z, 1, 0f, 0f, 0f, 0f, null);
+			
+			holder.getWorld().spawnParticle(p, l, 0);
 		}
+	}
+
+	/* TODO
+	 * ヘッショ計算
+	 */
+	/**
+	 * Called when a player's shot hit an enemy.
+	 * 
+	 * @param playerLoc - Current eye location of the player.
+	 * @param enemyLoc - Current eye location of the enemy.
+	 * @return isHeadShot
+	 */
+	protected boolean checkHeadShot(Location playerLoc, Location enemyLoc) {
+		boolean headShot = false;
+		
+		double distance = playerLoc.distance(enemyLoc);
+		
+		Location l = playerLoc.clone();
+		l.add(playerLoc.getDirection().multiply(distance));
+		
+		headShot = l.toVector().isInSphere(enemyLoc.toVector(), 0.35D);
+		
+		float pitch = headShot ? 1.5f : 2f;
+		holder.playSound(holder.getLocation(), Sound.ENTITY_ARROW_HIT_PLAYER, 0.5f, pitch);
+		
+		return headShot;
 	}
 
 	protected static class EntityFinder {
@@ -250,6 +429,50 @@ public abstract class GunBase {
 
 	}
 
-	protected abstract void onShoot(Player holder);
+	protected static class BurstSchedular {
 
+		private final int taskID;
+
+		public BurstSchedular(GunBase controller, Player holder, int gunSlot) {
+
+			HypixelZombiesProject plugin = HypixelZombiesProject.getPlugin();
+			BukkitScheduler schedular = plugin.getServer().getScheduler();
+			final BurstSchedular bs = this;
+			final int burstCount = (int)controller.getAttribute(BURST_COUNT);
+			final float burstInterval = controller.getAttribute(BURST_INTERVAL);
+			Runnable r = new Runnable() {
+
+				int count = 0;
+				int burst = 0;
+
+				@Override
+				public void run() {
+
+					if (controller.isReloading) {
+						schedular.cancelTask(bs.taskID);
+						return;
+					}
+					int i = (int)(burstInterval * 20f);
+					if (count % (i == 0 ? 1 : i) == 0) {
+
+						if (controller.eachShot(gunSlot)) {
+							controller.reload(holder, gunSlot);
+							schedular.cancelTask(bs.taskID);
+							return;
+						}
+						burst++;
+						holder.getInventory().setItem(gunSlot, controller.updateGun());
+					}
+
+					if (burst >= burstCount) {
+						schedular.cancelTask(bs.taskID);
+						return;
+					}
+					count++;
+				}
+			};
+			this.taskID = schedular.scheduleSyncRepeatingTask(plugin, r, 0, 1);
+
+		}
+	}
 }
