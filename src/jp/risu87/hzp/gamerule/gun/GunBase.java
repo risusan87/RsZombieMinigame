@@ -78,7 +78,7 @@ public abstract class GunBase {
 	private int intervalTaskID = -1;
 	private float xpBarProgress = 1.0f;
 	private ActionBarConstructor actionBarText = null;
-	private int torelatedTime;
+	private int toleratedTime;
 
 	/**
 	 * Inherited classes MUST set their gun status 
@@ -92,7 +92,7 @@ public abstract class GunBase {
 	 */
 	protected GunBase(Player owner, String gunName, int maxUlt, Item rawItem) {
 		
-		this.torelatedTime = this.getTorelatedTime();
+		this.toleratedTime = this.getToleratedTime();
 		this.gunID = UUID.randomUUID().toString();
 		this.holder = owner;
 		
@@ -145,8 +145,9 @@ public abstract class GunBase {
 		if (this.onCooldown) {
 			long remaining = (long)(this.getAttribute(SHOOT_INTERVAL) * 1000f) - (System.currentTimeMillis() - this.lastShot);
 			
-			if (remaining < this.torelatedTime && remaining > -this.torelatedTime) {
-				System.out.println("remaining " + remaining + " millisec torelated");
+			
+			if (remaining < this.toleratedTime && remaining > -this.toleratedTime) {
+				System.out.println("remaining " + remaining + " millisec tolerated");
 				schedular.cancelTask(this.intervalTaskID);
 			} else
 				return;
@@ -224,7 +225,8 @@ public abstract class GunBase {
 					if (count >= goalCount) {
 						schedular.cancelTask(gun.reloadTaskID);
 						gun.currentClip = (int)gun.getAttribute(MAX_CLIP_AMMO);
-						holder.getInventory().setItem(slotID, gun.updateGun());
+						
+						gun.updateGun();
 						
 						gun.actionBarText.setTextVisible(false);
 						gun.actionBarText = null;
@@ -253,10 +255,10 @@ public abstract class GunBase {
 	}
 	
 	/**
-	 * +/- torelated time in millisec.
+	 * +/- tolerated time in millisec.
 	 * @return
 	 */
-	protected int getTorelatedTime() {
+	protected int getToleratedTime() {
 		return 25;
 	}
 
@@ -295,7 +297,7 @@ public abstract class GunBase {
 		if (this.actionBarText != null) 
 			this.actionBarText.setTextVisible(true);
 		
-		int xp = holder.getExpToLevel();
+		int xp = holder.getLevel();
 		int delta = this.currentAmmo - xp;
 		holder.giveExpLevels(delta);
 		holder.setExp(this.xpBarProgress);
