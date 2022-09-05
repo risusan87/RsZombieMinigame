@@ -1,0 +1,2 @@
+# RsZombieMinigame
+要はハイピのぞんびーずのぱくり
