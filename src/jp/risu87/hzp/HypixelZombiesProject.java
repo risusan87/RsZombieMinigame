@@ -4,11 +4,13 @@ import java.lang.reflect.Field;
 import java.util.List;
 import java.util.logging.Level;
 
+import org.bukkit.Server;
 import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitScheduler;
 
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
@@ -99,6 +101,22 @@ public class HypixelZombiesProject extends JavaPlugin {
 		GunRule.setupGunRule();
 		VisibleBoard.setupBoard();
 		
+		Thread t = new Thread(() -> {
+			
+			Server s = null;
+			do {
+				try {
+					Thread.sleep(100);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+				s = HypixelZombiesProject.getPlugin().getServer();
+			} while (s == null);
+			s.getScheduler().scheduleSyncDelayedTask(plugin, () -> {
+				//VisibleBoard.getBoard().setInitialBoard();
+			});
+		});
+		
 		int id = 54;
 		MinecraftKey key = new MinecraftKey("zombiebasic");
 		EntityTypes.b.a(id, key, Zombie.class);
@@ -145,6 +163,10 @@ public class HypixelZombiesProject extends JavaPlugin {
 	
 	public ProtocolManager getProtocolManager() {
 		return this.protocolManager;
+	}
+	
+	public static BukkitScheduler getSchedular() {
+		return plugin.getServer().getScheduler();
 	}
 	                                             
 
