@@ -11,6 +11,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.player.PlayerExpChangeEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -108,6 +109,11 @@ public class GameTracker implements Listener {
 		event.getEntity().setVelocity(
 			victimVelocity.add(new Vector(aD.getX(), 0.4f, aD.getZ())));
 		
+	}
+	
+	@EventHandler
+	public void onPlayerHunger(FoodLevelChangeEvent event) {
+		event.setCancelled(true);
 	}
 	
 	public static GunBase getGunHeld(Player player, int slotID) {

@@ -25,6 +25,7 @@ import jp.risu87.hzp.gamerule.PermissionRule;
 import jp.risu87.hzp.gamerule.gun.GameTracker;
 import jp.risu87.hzp.gamerule.gun.GunRule;
 import jp.risu87.hzp.gamerule.zombies.GameRunningRule;
+import jp.risu87.hzp.gamerule.zombies.ZombieseEventListener;
 import net.minecraft.server.v1_12_R1.EntityTypes;
 import net.minecraft.server.v1_12_R1.MinecraftKey;
 import net.minecraft.server.v1_12_R1.PacketPlayOutNamedSoundEffect;
@@ -86,8 +87,10 @@ public class HypixelZombiesProject extends JavaPlugin {
 		
 		Listener listener = new EventListener();
 		Listener gunlistener = new GameTracker();
+		ZombieseEventListener zombiesListener = new ZombieseEventListener();
 		this.getServer().getPluginManager().registerEvents(listener, this);
 		this.getServer().getPluginManager().registerEvents(gunlistener, this);
+		this.getServer().getPluginManager().registerEvents(zombiesListener, this);
 		
 		GameRunningRule.getZombies();
 		
