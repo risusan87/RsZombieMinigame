@@ -1,6 +1,7 @@
-name: Zombies
+name: RsZombiesPlugin
 main: jp.risu87.hzp.HypixelZombiesProject
-version: 0.0.11
+version: 0.0.25
+depend: [ProtocolLib]
 commands:
   hzp:
     description: Zombies command

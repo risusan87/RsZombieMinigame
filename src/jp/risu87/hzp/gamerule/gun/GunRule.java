@@ -14,7 +14,6 @@ public class GunRule {
 	
 	private static GunRule rule;
 	private final Map<UUID, GunBase> guns = new HashMap<UUID, GunBase>();
-	public static final String GUN_PISTOL = "pistol";
 	
 	private GunRule() {
 		
@@ -32,22 +31,30 @@ public class GunRule {
 		
 	}
 	
-	public void registerGun(GunBase gun) {
-		ItemStack bukkitGun = gun.updateGun();
-		String uuid = CraftItemStack.asNMSCopy(bukkitGun).getTag().getString("gunID");
+	/**
+	 * Registers a new Gun 
+	 * @param gun
+	 */
+	public void registerGun(Player owner, int slot, GunType gunType) {
+		
+		GunBase gun = GunBase.createGun(owner, slot, gunType);
+		gun.updateGun();
+		
+		String uuid = CraftItemStack.asNMSCopy(owner.getInventory().getItem(slot)).getTag().getString("gunID");
 		this.guns.put(UUID.fromString(uuid), gun);
-		gun.holder.getInventory().setItemInMainHand(bukkitGun);
+		
 	}
+	
+	public void removeRegisteredGun(GunBase gun) {
+		
+	}
+	
 	
 	public GunBase getGunObj(ItemStack itemGun) {
 		NBTTagCompound nbt = CraftItemStack.asNMSCopy(itemGun).getTag();
 		if (nbt == null || !nbt.hasKey("gunType")) 
 			return null;
-		GunBase gun = this.guns.get(UUID.fromString(nbt.getString("gunID")));
-		switch (nbt.getString("gunType")) {
-			case GUN_PISTOL: return (GunPistol)gun;
-		}
-		return null;
+		return this.guns.get(UUID.fromString(nbt.getString("gunID")));
 	}
 	
 }

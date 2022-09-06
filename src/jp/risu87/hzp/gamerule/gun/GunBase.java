@@ -19,6 +19,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.util.Vector;
@@ -73,6 +74,7 @@ public abstract class GunBase {
 
 	protected boolean isReloading = false;
 	protected boolean onCooldown = false;
+	protected boolean isOutAmmo = false;
 	
 	private long lastShot = -1l;
 	private int reloadTaskID = -1;
@@ -127,7 +129,7 @@ public abstract class GunBase {
 		Map<String, Float[]> att = new HashMap<String, Float[]>(8);
 		att.put(RELOAD_TIME, new Float[] {1.5f, 1.0f});
 		att.put(SHOOT_INTERVAL, new Float[] {0.5f, 0.4f});
-		att.put(MAX_AMMO, new Float[] {300.f, 450.f});
+		att.put(MAX_AMMO, new Float[] {300.f, 14.f});
 		att.put(MAX_CLIP_AMMO, new Float[] {10.f, 14.f});
 		att.put(BURST_COUNT, new Float[] {1f, 2f});
 		att.put(BURST_INTERVAL, new Float[] {0.f, 0.1f});
@@ -141,6 +143,10 @@ public abstract class GunBase {
 		
 		if (this.isReloading) 
 			return;
+		
+		if (this.currentAmmo == 0) {
+			return;
+		}
 		
 		HypixelZombiesProject plugin = HypixelZombiesProject.getPlugin();
 		BukkitScheduler schedular = plugin.getServer().getScheduler();
@@ -201,12 +207,14 @@ public abstract class GunBase {
 		if (this.isReloading) 
 			return;
 
-		if (this.currentClip == (int)this.getAttribute(MAX_CLIP_AMMO))
+		if (
+			this.currentClip == (int)this.getAttribute(MAX_CLIP_AMMO) ||
+			this.currentClip == this.currentAmmo
+		) {
 			return;
+		}
 
 		this.isReloading = true;
-		
-		this.updateGun();
 		
 		ChatJsonBuilder cjb = new ChatJsonBuilder();
 		cjb.withText("RELOADING");
@@ -229,7 +237,10 @@ public abstract class GunBase {
 				try {
 					if (count >= goalCount) {
 						schedular.cancelTask(gun.reloadTaskID);
-						gun.currentClip = (int)gun.getAttribute(MAX_CLIP_AMMO);
+						
+						int clip = (int)gun.getAttribute(MAX_CLIP_AMMO) <= gun.currentAmmo ? 
+									(int)gun.getAttribute(MAX_CLIP_AMMO) : gun.currentAmmo;
+						gun.currentClip = clip;
 						
 						updateGun();
 						
@@ -325,8 +336,31 @@ public abstract class GunBase {
 		
 	}
 	
+	public void setCurrentAmmo(int amount) {
+		
+		if (amount < 0) amount = 0;
+		else if (amount > (int)this.getAttribute(MAX_AMMO)) amount = (int)this.getAttribute(MAX_AMMO);
+		
+		
+		
+	}
+	
+	public int getCurrentAmmo() {
+		return this.currentAmmo;
+	}
+	
+	public void setCurrentClipAmmo(int ammount) {
+		
+	}
+	
+	public int getCurrentClipAmmo() {
+		return this.currentClip;
+	}
+	
+	// UPDATE AND STUFF
+	
 	/**
-	 * Checks if everything is on track 
+	 * Updates everything of this gun
 	 * @return
 	 */
 	public final void updateGun() {
@@ -335,7 +369,6 @@ public abstract class GunBase {
 		
 		PermissionRule.getPermissionRule().addPermission(holder, PermissionRule.HZP_FLAG_SHOULD_NOT_HEAR_XP_SOUND);
 		
-		gun.setAmount(this.currentClip);
 		if (this.ultLv > 0) {
 			gun.addUnsafeEnchantment(Enchantment.ARROW_INFINITE, 1);
 			ItemMeta meta = gun.getItemMeta();
@@ -344,12 +377,53 @@ public abstract class GunBase {
 		} else {
 			gun.removeEnchantment(Enchantment.ARROW_INFINITE);
 		}
-		int xp = holder.getLevel();
-		int delta = this.currentAmmo - xp;
-		holder.giveExpLevels(delta);
+		
+		updateAmmoDisplay();
+		gun.setAmount(this.currentClip);
 		
 		holder.getInventory().setItem(this.gunSlot, gun);
 		
+	}
+	
+	private void updateAmmoDisplay() {
+		if (holder.getInventory().getHeldItemSlot() == this.gunSlot) {
+			int xp = holder.getLevel();
+			int delta = this.currentAmmo - xp;
+			holder.giveExpLevels(delta);
+		}
+	}
+	
+	private void updateClipDisplay() {
+		PlayerInventory inventory = holder.getInventory();
+		if (inventory.getHeldItemSlot() == this.gunSlot) {
+			ItemStack stack = inventory.getItem(this.gunSlot);
+			stack.setAmount(currentClip);
+			inventory.setItem(this.gunSlot, stack);
+		}
+	}
+	
+	public final void refill() {
+		
+		BukkitScheduler schedular = HypixelZombiesProject.getPlugin().getServer().getScheduler();
+		if (this.isReloading) {
+			schedular.cancelTask(this.reloadTaskID);
+			this.isReloading = false;
+		}
+		
+		if (this.onCooldown) {
+			schedular.cancelTask(this.intervalTaskID);
+			this.onCooldown = false;
+		}
+		
+		if (this.actionBarText != null) {
+			this.actionBarText.setTextVisible(false);
+			this.actionBarText = null;
+		}
+		
+		this.currentAmmo = (int) this.getAttribute(MAX_AMMO);
+		this.currentClip = (int) this.getAttribute(MAX_CLIP_AMMO);
+		
+		this.updateGun();
 	}
 
 	protected void spawnParticle(Particle p, Player holder) {
@@ -452,7 +526,7 @@ public abstract class GunBase {
 
 		private final int taskID;
 
-		public BurstSchedular(GunBase controller, Player holder, int gunSlot) {
+		public BurstSchedular(GunBase controller) {
 
 			HypixelZombiesProject plugin = HypixelZombiesProject.getPlugin();
 			BukkitScheduler schedular = plugin.getServer().getScheduler();
@@ -475,8 +549,32 @@ public abstract class GunBase {
 					if (count % (i == 0 ? 1 : i) == 0) {
 
 						if (controller.eachShot()) {
-							controller.reload();
+							
 							schedular.cancelTask(bs.taskID);
+							
+							if (controller.currentAmmo == 0) {
+								controller.actionBarText = 
+										ActionBarConstructor.constractActionBarText(
+											new ChatJsonBuilder().withText("OUT OF AMMO").withColor(ChatColor.RED)
+										);
+								controller.actionBarText.addViewers(controller.holder);
+								controller.actionBarText.setTextVisible(true);
+								PlayerInventory inventory = controller.holder.getInventory();
+								ItemStack item = inventory.getItem(controller.gunSlot);
+								short dul = (short)((float)item.getType().getMaxDurability() * 0.99f);
+								item.setDurability(dul);
+								inventory.setItem(controller.gunSlot, item);
+								controller.updateAmmoDisplay();
+								controller.isOutAmmo = true;
+								return;
+							}
+							
+							int xp = controller.holder.getLevel();
+							int delta = controller.currentAmmo - xp;
+							controller.holder.giveExpLevels(delta);
+							
+							controller.reload();
+							
 							return;
 						}
 						burst++;

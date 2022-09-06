@@ -16,8 +16,8 @@ import java.util.Map;
 
 public class GunPistol extends GunBase {
 	
-	public GunPistol(Player holder) {
-		super(holder, GunRule.GUN_PISTOL, 2, Items.WOODEN_HOE);
+	public GunPistol(Player holder, int slot) {
+		super(holder, GunType.PISTOL.getGunName(), 2, Items.WOODEN_HOE, slot);
 		
 		this.ultLv = 0;
 		
@@ -26,12 +26,12 @@ public class GunPistol extends GunBase {
 	}
 
 	@Override
-	protected void onShoot(int slotID) {
-		new BurstSchedular(this, holder, slotID);
+	protected void onShoot() {
+		new BurstSchedular(this);
 	}
 
 	@Override
-	protected boolean eachShot(int slotID) {
+	protected boolean eachShot() {
 		
 		World world = holder.getWorld();
 		world.playSound(holder.getLocation(), Sound.ENTITY_IRONGOLEM_HURT, 0.5f, 2.0f);
