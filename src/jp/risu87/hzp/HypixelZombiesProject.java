@@ -25,6 +25,7 @@ import jp.risu87.hzp.gamerule.PermissionRule;
 import jp.risu87.hzp.gamerule.gun.GameTracker;
 import jp.risu87.hzp.gamerule.gun.GunRule;
 import jp.risu87.hzp.gamerule.zombies.GameRunningRule;
+import jp.risu87.hzp.gamerule.zombies.VisibleBoard;
 import jp.risu87.hzp.gamerule.zombies.ZombieseEventListener;
 import net.minecraft.server.v1_12_R1.EntityTypes;
 import net.minecraft.server.v1_12_R1.MinecraftKey;
@@ -93,6 +94,10 @@ public class HypixelZombiesProject extends JavaPlugin {
 		this.getServer().getPluginManager().registerEvents(zombiesListener, this);
 		
 		GameRunningRule.getZombies();
+		CollisionRule.setupCollisionRule(false);
+		PermissionRule.setupPermissionRule();
+		GunRule.setupGunRule();
+		VisibleBoard.setupBoard();
 		
 		int id = 54;
 		MinecraftKey key = new MinecraftKey("zombiebasic");

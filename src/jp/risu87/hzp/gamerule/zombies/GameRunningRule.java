@@ -21,16 +21,7 @@ public class GameRunningRule {
 	
 	private GameRunningRule() {
 		
-		CollisionRule.setupCollisionRule(false);
-		PermissionRule.setupPermissionRule();
-		GunRule.setupGunRule();
-		VisibleBoard.setupBoard();
-		
 		this.inServerPlayers = new HashMap<UUID, GameProfile>();
-		HypixelZombiesProject.getPlugin().getServer().getOnlinePlayers().forEach(p -> {
-			this.inServerPlayers.put(p.getUniqueId(), new GameProfile());
-		});
-		VisibleBoard.getBoard().setVisibleBoard(BoardType.WAITING);
 		
 	}
 	
