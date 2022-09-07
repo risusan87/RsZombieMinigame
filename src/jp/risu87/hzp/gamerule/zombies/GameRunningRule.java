@@ -6,6 +6,11 @@ import java.util.UUID;
 
 import org.bukkit.entity.Player;
 
+import jp.risu87.hzp.gamerule.CollisionRule;
+import jp.risu87.hzp.gamerule.PermissionRule;
+import jp.risu87.hzp.gamerule.gun.GunRule;
+import jp.risu87.hzp.gamerule.zombies.VisibleBoard.BoardType;
+
 public class GameRunningRule {
 	
 	private static GameRunningRule rule = null;

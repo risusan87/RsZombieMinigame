@@ -5,9 +5,6 @@ import java.util.List;
 import java.util.logging.Level;
 
 import org.bukkit.Server;
-import org.bukkit.Sound;
-import org.bukkit.World;
-import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitScheduler;
@@ -28,10 +25,10 @@ import jp.risu87.hzp.gamerule.gun.GameTracker;
 import jp.risu87.hzp.gamerule.gun.GunRule;
 import jp.risu87.hzp.gamerule.zombies.GameRunningRule;
 import jp.risu87.hzp.gamerule.zombies.VisibleBoard;
+import jp.risu87.hzp.gamerule.zombies.VisibleBoard.BoardType;
 import jp.risu87.hzp.gamerule.zombies.ZombieseEventListener;
 import net.minecraft.server.v1_12_R1.EntityTypes;
 import net.minecraft.server.v1_12_R1.MinecraftKey;
-import net.minecraft.server.v1_12_R1.PacketPlayOutNamedSoundEffect;
 
 /**
  * Spigot APIによるゾンビ再現プロジェクト。
@@ -95,14 +92,7 @@ public class HypixelZombiesProject extends JavaPlugin {
 		this.getServer().getPluginManager().registerEvents(gunlistener, this);
 		this.getServer().getPluginManager().registerEvents(zombiesListener, this);
 		
-		GameRunningRule.getZombies();
-		CollisionRule.setupCollisionRule(false);
-		PermissionRule.setupPermissionRule();
-		GunRule.setupGunRule();
-		VisibleBoard.setupBoard();
-		
 		Thread t = new Thread(() -> {
-			
 			Server s = null;
 			do {
 				try {
@@ -113,10 +103,18 @@ public class HypixelZombiesProject extends JavaPlugin {
 				s = HypixelZombiesProject.getPlugin().getServer();
 			} while (s == null);
 			s.getScheduler().scheduleSyncDelayedTask(plugin, () -> {
-				//VisibleBoard.getBoard().setInitialBoard();
+				// reserves a task when the server responds.
+				GameRunningRule.getZombies();
+				CollisionRule.setupCollisionRule(false);
+				PermissionRule.setupPermissionRule();
+				GunRule.setupGunRule();
+				VisibleBoard.setupBoard();
+				
+				VisibleBoard.getBoard().setVisibleBoard(BoardType.WAITING);
 			});
 		});
-		
+		t.start();
+
 		int id = 54;
 		MinecraftKey key = new MinecraftKey("zombiebasic");
 		EntityTypes.b.a(id, key, Zombie.class);
@@ -151,6 +149,7 @@ public class HypixelZombiesProject extends JavaPlugin {
 	@Override
 	public void onDisable() {
 		CollisionRule.disableCollisionRule();
+		VisibleBoard.disableVisibleBoard();
 	}
 	
 	public static HypixelZombiesProject getPlugin() {

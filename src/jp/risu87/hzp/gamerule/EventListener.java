@@ -58,7 +58,7 @@ public class EventListener implements Listener {
 	}
 	
 	@EventHandler
-	public void onPlayerJoin(PlayerJoinEvent event) {
+	public void d(PlayerJoinEvent event) {
 		event.setJoinMessage(null);
 		
 	}

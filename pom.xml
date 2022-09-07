@@ -31,7 +31,7 @@
     	<groupId>org.bukkit</groupId>
     	<artifactId>craftbukkit</artifactId>
     	<version>craftbukkit-1.12.2-R0.1-SNAPSHOT</version>
-    	<systemPath>C:/Users/ypmxx/Downloads/buildtool/CraftBukkit/target/craftbukkit-1.12.2-R0.1-SNAPSHOT.jar</systemPath>
+    	<systemPath>/Users/risusan87/build/CraftBukkit/target/craftbukkit-1.12.2-R0.1-SNAPSHOT.jar</systemPath>
     	<type>jar</type>
     	<scope>system</scope>
     </dependency>

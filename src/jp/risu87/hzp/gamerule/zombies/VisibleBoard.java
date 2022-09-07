@@ -29,7 +29,7 @@ public class VisibleBoard {
 	private int playerReady = 1;
 	private int maxPlayers = 4;
 	
-	protected static enum BoardType {
+	public static enum BoardType {
 		INVISIBLE,
 		WAITING,
 		INGAME,
