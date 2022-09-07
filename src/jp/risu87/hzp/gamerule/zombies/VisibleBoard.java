@@ -16,14 +16,10 @@ import jp.risu87.hzp.HypixelZombiesProject;
 
 public class VisibleBoard {
 	
-	private final Scoreboard waitBoard;
+	private final BoardSidebar waitBoard;
 	private final Scoreboard invisibleBoard;
 	
 	private static VisibleBoard board;
-
-	private List<Score> linesWaiting;
-	private List<Score> linesInGame;
-	private List<Score> linesEnded;
 	
 	private String mapString = "Quintistic";
 	private int playerReady = 1;
@@ -39,49 +35,23 @@ public class VisibleBoard {
 	private VisibleBoard() {
 		
 		this.invisibleBoard = Bukkit.getScoreboardManager().getNewScoreboard();
-		this.waitBoard = Bukkit.getScoreboardManager().getNewScoreboard();
+		this.waitBoard = new BoardSidebar("" + ChatColor.YELLOW + ChatColor.BOLD + "ZOMBIES");
 		
-		Objective obj = this.waitBoard.registerNewObjective("VisibleBoard", "dummy");
-		obj.setDisplayName("" + ChatColor.YELLOW + ChatColor.BOLD + "ZOMBIES");
-		obj.setDisplaySlot(DisplaySlot.SIDEBAR);
-		this.linesWaiting = new ArrayList<Score>();
+		this.waitBoard.setLine(8, "HI!");
 		
-		
-		this.linesWaiting.add(0, obj.getScore(ChatColor.YELLOW + "quintistic.net"));
-		this.linesWaiting.get(0).setScore(1);
-		this.linesWaiting.add(1, obj.getScore(" "));
-		this.linesWaiting.get(1).setScore(2);
-		this.linesWaiting.add(2, obj.getScore(ChatColor.WHITE + "Waiting..."));
-		this.linesWaiting.get(2).setScore(3);
-		this.linesWaiting.add(3, obj.getScore("  "));
-		this.linesWaiting.get(3).setScore(4);
-		this.linesWaiting.add(4, obj.getScore(ChatColor.WHITE + "Players: " + ChatColor.GREEN + playerReady + "/" + maxPlayers));
-		this.linesWaiting.get(4).setScore(5);
-		this.linesWaiting.add(5, obj.getScore(ChatColor.WHITE + "Map: " + ChatColor.GREEN + mapString));
-		this.linesWaiting.get(5).setScore(6);
-		this.linesWaiting.add(6, obj.getScore("   "));
-		this.linesWaiting.get(6).setScore(7);
-		this.linesWaiting.add(7, obj.getScore("    "));
-		this.linesWaiting.get(7).setScore(8);
-
+		this.setVisibleBoard(BoardType.WAITING);
 	}
 	
 	
 	public void setVisibleBoard(BoardType type) {
 		
-		Scoreboard setBoard = null;
-		switch (type) {
-			case INVISIBLE:
-				setBoard = this.invisibleBoard;
-			case WAITING:
-				setBoard = this.waitBoard;
-			default:
-				setBoard = this.invisibleBoard;
-		}
-		
-		final Scoreboard b = setBoard;
+		final Scoreboard setBoard = 
+				type == BoardType.INVISIBLE ? this.invisibleBoard :
+				type == BoardType.WAITING ? this.waitBoard.getScoreboard() :
+				this.invisibleBoard;
 		GameRunningRule.getZombies().inServerPlayers.forEach((uuid, profile) -> {
-			Bukkit.getPlayer(uuid).setScoreboard(b);
+			System.out.println("visible to " + uuid);
+			Bukkit.getPlayer(uuid).setScoreboard(setBoard);
 		});
 		
 	}
@@ -102,6 +72,48 @@ public class VisibleBoard {
 			Bukkit.getPlayer(uuid).setScoreboard(board.invisibleBoard);
 		});
 		board = null;
+		
+	}
+	
+	private static class BoardSidebar {
+		
+		private List<String> lines;
+		private String title;
+		
+		public BoardSidebar(String title) {
+			this.lines = new ArrayList<String>();	
+			this.title = title;
+		}
+		
+		public void setLine(int lineNum, String line) {
+			for (int i = lines.size(); lines.size() < lineNum - 1; i++) {
+				String s = "";
+				for (int j = 0; j < i; j++) s+=" ";
+				this.lines.add(s);
+			}
+			this.lines.add(line);
+		}
+		
+		public Scoreboard getScoreboard() {
+			
+			Scoreboard board = Bukkit.getScoreboardManager().getNewScoreboard();
+			Objective bObj = board.registerNewObjective("obj", "dummy");
+			bObj.setDisplayName(title);
+			bObj.setDisplaySlot(DisplaySlot.SIDEBAR);
+			
+			int lineSize = this.lines.size();
+			for (int i = lineSize; i > 0 ; i--) {
+				Score s = bObj.getScore(this.lines.get(i - 1));
+				s.setScore(i);
+			}
+			
+			if (lineSize == 0) {
+				Score s = bObj.getScore("");
+				s.setScore(1);
+			}
+			
+			return board;
+		}
 		
 	}
 }

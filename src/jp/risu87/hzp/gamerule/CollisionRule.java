@@ -21,6 +21,7 @@ public class CollisionRule {
 		ScoreboardManager sm = Bukkit.getScoreboardManager();
         this.board = sm.getNewScoreboard();
         
+        
         this.teamInGamePlayers = board.registerNewTeam(TEAM_IN_GAME_PLAYERS);
         this.teamInGamePlayers.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.FOR_OWN_TEAM);
         this.teamInGamePlayers.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.NEVER);
@@ -55,7 +56,8 @@ public class CollisionRule {
     }
 
     public void removePlayer(Player p, String team) {
-        if(p.getScoreboard().equals(Bukkit.getScoreboardManager().getMainScoreboard())) return;
+        if(p.getScoreboard().equals(Bukkit.getScoreboardManager().getMainScoreboard())) 
+        	return;
         if(p.getScoreboard().getTeam(team) != null)
             p.getScoreboard().getTeam(team).removeEntry(p.getName());
     }

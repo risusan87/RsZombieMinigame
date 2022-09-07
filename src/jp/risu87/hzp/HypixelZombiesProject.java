@@ -23,12 +23,12 @@ import jp.risu87.hzp.command.CommandHZP;
 import jp.risu87.hzp.entity.Zombie;
 import jp.risu87.hzp.gamerule.CollisionRule;
 import jp.risu87.hzp.gamerule.EventListener;
+import jp.risu87.hzp.gamerule.PacketRule;
 import jp.risu87.hzp.gamerule.PermissionRule;
 import jp.risu87.hzp.gamerule.gun.GameTracker;
 import jp.risu87.hzp.gamerule.gun.GunRule;
 import jp.risu87.hzp.gamerule.zombies.GameRunningRule;
 import jp.risu87.hzp.gamerule.zombies.VisibleBoard;
-import jp.risu87.hzp.gamerule.zombies.ZombieseEventListener;
 import net.minecraft.server.v1_12_R1.EntityTypes;
 import net.minecraft.server.v1_12_R1.MinecraftKey;
 import net.minecraft.server.v1_12_R1.PacketPlayOutNamedSoundEffect;
@@ -53,69 +53,37 @@ public class HypixelZombiesProject extends JavaPlugin {
 		
 		this.protocolManager = ProtocolLibrary.getProtocolManager();
 		
-		protocolManager.addPacketListener(new PacketAdapter(
-			    this,
-			    ListenerPriority.NORMAL,
-			    PacketType.Play.Server.WORLD_PARTICLES
-			) {
-			    @Override
-			    public void onPacketSending(PacketEvent event) {
-			    	boolean sweep = event.getPacket().getParticles().read(0).getName().equals("sweepAttack");
-			        event.setCancelled(sweep);
-			    }
-		});
-		protocolManager.addPacketListener(new PacketAdapter(
-				this,
-				ListenerPriority.NORMAL,
-				PacketType.Play.Server.NAMED_SOUND_EFFECT
-			) {
-				@Override
-				public void onPacketSending(PacketEvent event) {
-					String soundName = event.getPacket().getSoundEffects().read(0).name();
-					PermissionRule rule = PermissionRule.getPermissionRule();
-					event.setCancelled(
-							soundName.contains("ATTACK_SWEEP") || 
-							soundName.contains("ATTACK_CRIT") ||
-							soundName.contains("ATTACK_STRONG") ||
-							soundName.contains("ATTACK_KNOCKBACK") ||
-							(
-								rule.hasPermission(event.getPlayer(), PermissionRule.HZP_FLAG_SHOULD_NOT_HEAR_XP_SOUND)
-								&& 
-								soundName.contains("ENTITY_PLAYER_LEVELUP")
-							)
-							);
-				}
-		});
-		
 		
 		Listener listener = new EventListener();
 		Listener gunlistener = new GameTracker();
-		ZombieseEventListener zombiesListener = new ZombieseEventListener();
 		this.getServer().getPluginManager().registerEvents(listener, this);
 		this.getServer().getPluginManager().registerEvents(gunlistener, this);
-		this.getServer().getPluginManager().registerEvents(zombiesListener, this);
-		
-		GameRunningRule.getZombies();
-		CollisionRule.setupCollisionRule(false);
-		PermissionRule.setupPermissionRule();
-		GunRule.setupGunRule();
-		VisibleBoard.setupBoard();
 		
 		Thread t = new Thread(() -> {
 			
 			Server s = null;
 			do {
+				
 				try {
 					Thread.sleep(100);
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
 				s = HypixelZombiesProject.getPlugin().getServer();
+				
 			} while (s == null);
 			s.getScheduler().scheduleSyncDelayedTask(plugin, () -> {
-				//VisibleBoard.getBoard().setInitialBoard();
+				GameRunningRule.getZombies();
+				CollisionRule.setupCollisionRule(false);
+				PermissionRule.setupPermissionRule();
+				GunRule.setupGunRule();
+				VisibleBoard.setupBoard();
+				PacketRule.getPacketRule();
+				
+				//VisibleBoard.getBoard().setVisibleBoard();
 			});
 		});
+		t.start();
 		
 		int id = 54;
 		MinecraftKey key = new MinecraftKey("zombiebasic");
@@ -151,6 +119,7 @@ public class HypixelZombiesProject extends JavaPlugin {
 	@Override
 	public void onDisable() {
 		CollisionRule.disableCollisionRule();
+		VisibleBoard.disableVisibleBoard();
 	}
 	
 	public static HypixelZombiesProject getPlugin() {

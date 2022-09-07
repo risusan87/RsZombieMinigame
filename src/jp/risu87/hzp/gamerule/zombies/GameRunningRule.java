@@ -6,6 +6,8 @@ import java.util.UUID;
 
 import org.bukkit.entity.Player;
 
+import jp.risu87.hzp.HypixelZombiesProject;
+
 public class GameRunningRule {
 	
 	private static GameRunningRule rule = null;
@@ -16,6 +18,10 @@ public class GameRunningRule {
 	private GameRunningRule() {
 		
 		this.inServerPlayers = new HashMap<UUID, GameProfile>();
+		HypixelZombiesProject.getPlugin().getServer().getOnlinePlayers().forEach(p -> {
+			System.out.println(p + " put");
+			this.inServerPlayers.put(p.getUniqueId(), new GameProfile());
+		});
 		
 	}
 	
