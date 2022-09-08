@@ -1,5 +1,6 @@
 package jp.risu87.hzp.entity;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
@@ -8,11 +9,18 @@ import org.bukkit.World;
 import org.bukkit.craftbukkit.v1_12_R1.CraftServer;
 import org.bukkit.craftbukkit.v1_12_R1.CraftWorld;
 import org.bukkit.craftbukkit.v1_12_R1.entity.CraftPlayer;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 
+import com.comphenix.protocol.PacketType;
+import com.comphenix.protocol.ProtocolManager;
+import com.comphenix.protocol.events.PacketContainer;
+import com.comphenix.protocol.wrappers.BlockPosition;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 
+import jp.risu87.hzp.HypixelZombiesProject;
+import jp.risu87.hzp.gamerule.zombies.CollisionRule;
 import jp.risu87.hzp.util.DummyNetworkManager;
 import net.minecraft.server.v1_12_R1.EntityPlayer;
 import net.minecraft.server.v1_12_R1.EnumProtocolDirection;
@@ -75,5 +83,40 @@ public class DummyPlayer extends EntityPlayer {
 			connection.sendPacket(playerInfoRemove);
 		}
 		return entityPlayer;
+	}
+	
+	
+	
+	public static Entity spawnAt(Location location) {
+		DummyPlayer p = DummyPlayer.createNPC("", location.getWorld(), location);
+		p.setInvisible(true);
+		Player dummy = p.getBukkitEntity();
+		//CollisionRule.getCollisionRule().addPlayer(dummy, CollisionRule.TEAM_IN_GAME_NON_PLAYERS);
+		
+		ProtocolManager manager = HypixelZombiesProject.getPlugin().getProtocolManager();
+		final PacketContainer bedPacket = manager.createPacket(PacketType.Play.Server.BED, false);
+        final Location loc = dummy.getLocation();
+
+        bedPacket.getIntegers().
+        write(0, dummy.getEntityId());
+        bedPacket.getBlockPositionModifier().
+        write(0, new BlockPosition(7, 69, 31));
+        
+        for (Player observer : HypixelZombiesProject.getPlugin().getServer().getOnlinePlayers()) {
+        	
+        	try {
+				manager.sendServerPacket(observer, bedPacket);
+				
+			} catch (InvocationTargetException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+        	
+        }
+        
+        dummy.teleport(dummy);
+
+        return dummy;
+        
 	}
 }

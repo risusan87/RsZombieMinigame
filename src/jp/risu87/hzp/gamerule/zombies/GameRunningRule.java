@@ -1,6 +1,8 @@
 package jp.risu87.hzp.gamerule.zombies;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -29,7 +31,15 @@ public class GameRunningRule {
 		return rule == null ? (rule = new GameRunningRule()) : rule;
 	}
 	
-	
+	public List<UUID> getIngamePlayers() {
+		
+		final List<UUID> uuids = new ArrayList<UUID>();
+		this.inServerPlayers.forEach((uuid, profile) -> {
+			uuids.add(uuid);
+		});
+		return uuids;
+		
+	}
 	
 	public void addPlayerIfNew(Player player) {
 		if (!this.inServerPlayers.containsKey(player.getUniqueId()))
@@ -58,6 +68,8 @@ public class GameRunningRule {
 	protected static class GameProfile {
 		
 		public PlayerState playerState = PlayerState.INLOBBY;
+		public int purseGold;
+		public int kills;
 		
 		public GameProfile() {
 			

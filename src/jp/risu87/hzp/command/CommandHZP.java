@@ -3,12 +3,17 @@ package jp.risu87.hzp.command;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
+import org.bukkit.craftbukkit.v1_12_R1.entity.CraftEntity;
+import org.bukkit.craftbukkit.v1_12_R1.inventory.CraftItemStack;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 
 import com.comphenix.protocol.PacketType;
@@ -17,13 +22,15 @@ import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.wrappers.BlockPosition;
 import jp.risu87.hzp.HypixelZombiesProject;
 import jp.risu87.hzp.entity.DummyPlayer;
-import jp.risu87.hzp.gamerule.CollisionRule;
 import jp.risu87.hzp.gamerule.PermissionRule;
 import jp.risu87.hzp.gamerule.gun.GunBase;
 import jp.risu87.hzp.gamerule.gun.GunPistol;
 import jp.risu87.hzp.gamerule.gun.GunRule;
 import jp.risu87.hzp.gamerule.gun.GunType;
+import jp.risu87.hzp.gamerule.zombies.CollisionRule;
+import jp.risu87.hzp.gamerule.zombies.GameRunningRule;
 import jp.risu87.hzp.gamerule.zombies.VisibleBoard;
+import jp.risu87.hzp.gamerule.zombies.VisibleBoard.BoardType;
 import jp.risu87.hzp.util.ActionBarConstructor;
 import jp.risu87.hzp.util.ChatJsonBuilder;
 
@@ -35,6 +42,7 @@ public class CommandHZP implements CommandExecutor, TabCompleter {
 		commands.add(new CommandSaveLocation());
 	}
 	
+	static Entity en;
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 
@@ -70,45 +78,34 @@ public class CommandHZP implements CommandExecutor, TabCompleter {
 			return true;
 		}
 		
+		
 		if (args[0].equals("npc")) {
 			
-			DummyPlayer p = DummyPlayer.createNPC("Quint1220", pSender.getWorld(), pSender.getLocation());
-			//p.setInvisible(true);
-			Player dummy = p.getBukkitEntity();
-			CollisionRule.getCollisionRule().addPlayer(dummy, CollisionRule.TEAM_IN_GAME_NON_PLAYERS);
+			en = DummyPlayer.spawnAt(pSender.getLocation());
+			CollisionRule.getCollisionRule().addPlayer((Player)en, CollisionRule.TEAM_IN_GAME_CORPSE);
 			
-			ProtocolManager manager = HypixelZombiesProject.getPlugin().getProtocolManager();
-			final PacketContainer bedPacket = manager.createPacket(PacketType.Play.Server.BED, false);
-	        final Location loc = dummy.getLocation();
-
-	        bedPacket.getIntegers().
-            write(0, dummy.getEntityId());
-	        bedPacket.getBlockPositionModifier().
-	        write(0, new BlockPosition(loc.getBlockX(), loc.getBlockY(), loc.getBlockZ()));
-	        
-	        for (Player observer : HypixelZombiesProject.getPlugin().getServer().getOnlinePlayers()) {
-	        	
-	        	try {
-					manager.sendServerPacket(observer, bedPacket);
-					
-				} catch (InvocationTargetException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-	        	
-	        }
 	        return true;
 	        
 		}
 		
-		if (args[0].equals("addPlayers")) {
-			pSender.getWorld().getPlayers().forEach(p -> {
-				CollisionRule rule = CollisionRule.getCollisionRule();
-				if (!rule.containsPlayer(p, CollisionRule.TEAM_IN_GAME_PLAYERS))
-					rule.addPlayer(p, CollisionRule.TEAM_IN_GAME_PLAYERS);
-			});
-			return true;
+		if (args[0].equals("tp")) {
+			
+			en.teleport(pSender);
+			((CraftEntity)en).getHandle().setInvisible(false);
+	        return true;
+	        
 		}
+		
+		if (args[0].equals("team")) {
+			
+			HypixelZombiesProject.getPlugin().getServer().getOnlinePlayers().forEach((uuid) -> {
+	        	CollisionRule.getCollisionRule().addPlayer(uuid, CollisionRule.TEAM_IN_GAME_PLAYERS);
+	        	//VisibleBoard.setupBoard().setVisibleBoard(BoardType.INGAME);
+		 });
+	        return true;
+	        
+		}
+		
 		
 		if (args[0].equals("ult")) {
 			GunBase gun = GunRule.getGunRule().getGunObj(pSender.getInventory().getItemInMainHand());
@@ -127,6 +124,16 @@ public class CommandHZP implements CommandExecutor, TabCompleter {
 			if (gun != null)
 				gun.refill();
 			return true;
+		}
+		if (args[0].equals("startTimer")) {
+			VisibleBoard.getBoard().ingameBoardTimerStart();
+			return true;
+		}
+		if (args[0].equals("stopTimer")) {
+			VisibleBoard.getBoard().ingameBoardTimerStop();
+		}
+		if (args[0].equals("resetTimer")) {
+			VisibleBoard.getBoard().ingameBoardTimerReset();
 		}
 		
 		ChatJsonBuilder jb = new ChatJsonBuilder("Unknown command. Use \"/hzp help\" to list commands.");

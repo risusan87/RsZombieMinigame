@@ -16,14 +16,21 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryOpenEvent;
+import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.plugin.messaging.Messenger;
 import org.bukkit.util.Vector;
 
 import jp.risu87.hzp.entity.Zombie;
+import jp.risu87.hzp.gamerule.zombies.GameRunningRule;
 import net.minecraft.server.v1_12_R1.EntityZombie;
 import net.minecraft.server.v1_12_R1.WorldServer;
 
@@ -59,12 +66,33 @@ public class EventListener implements Listener {
 	
 	@EventHandler
 	public void onPlayerJoin(PlayerJoinEvent event) {
-		event.setJoinMessage(null);
+		//event.getPlayer().kickPlayer("Server under maintenance");
+		GameRunningRule.getZombies().addPlayerIfNew(event.getPlayer());
+		event.setJoinMessage(event.getPlayer().getDisplayName() + " is here");
+	}
+	
+	@EventHandler
+	public void onPlayerLeave(PlayerQuitEvent event) {
 		
 	}
 	
-	public void onPlayerMove(PlayerMoveEvent event) {
+	@EventHandler
+	public void onPlayerOpenInventory(InventoryClickEvent event) {
 		
+		InventoryType p = event.getClickedInventory().getType();
+		
+	}
+	
+	@EventHandler
+	public void onPlayerDie(EntityDamageEvent event) {
+		if (!(event.getEntity() instanceof Player)) {
+			return;
+		}
+		Player p = (Player) event.getEntity();
+		if (event.getFinalDamage() >= p.getHealth()) {
+			p.sendMessage("You dead");
+			event.setCancelled(true);
+		}
 	}
 	
 }

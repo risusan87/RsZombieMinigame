@@ -21,14 +21,15 @@ import com.comphenix.protocol.events.PacketEvent;
 
 import jp.risu87.hzp.command.CommandHZP;
 import jp.risu87.hzp.entity.Zombie;
-import jp.risu87.hzp.gamerule.CollisionRule;
 import jp.risu87.hzp.gamerule.EventListener;
 import jp.risu87.hzp.gamerule.PacketRule;
 import jp.risu87.hzp.gamerule.PermissionRule;
 import jp.risu87.hzp.gamerule.gun.GameTracker;
 import jp.risu87.hzp.gamerule.gun.GunRule;
+import jp.risu87.hzp.gamerule.zombies.CollisionRule;
 import jp.risu87.hzp.gamerule.zombies.GameRunningRule;
 import jp.risu87.hzp.gamerule.zombies.VisibleBoard;
+import jp.risu87.hzp.gamerule.zombies.VisibleBoard.BoardType;
 import net.minecraft.server.v1_12_R1.EntityTypes;
 import net.minecraft.server.v1_12_R1.MinecraftKey;
 import net.minecraft.server.v1_12_R1.PacketPlayOutNamedSoundEffect;
@@ -74,13 +75,13 @@ public class HypixelZombiesProject extends JavaPlugin {
 			} while (s == null);
 			s.getScheduler().scheduleSyncDelayedTask(plugin, () -> {
 				GameRunningRule.getZombies();
-				CollisionRule.setupCollisionRule(false);
 				PermissionRule.setupPermissionRule();
 				GunRule.setupGunRule();
 				VisibleBoard.setupBoard();
 				PacketRule.getPacketRule();
+				CollisionRule.setupCollisionRule(false);
 				
-				//VisibleBoard.getBoard().setVisibleBoard();
+				VisibleBoard.getBoard().setVisibleBoard(BoardType.INGAME);
 			});
 		});
 		t.start();

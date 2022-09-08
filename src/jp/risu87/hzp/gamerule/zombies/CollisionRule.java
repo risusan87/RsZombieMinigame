@@ -1,4 +1,4 @@
-package jp.risu87.hzp.gamerule;
+package jp.risu87.hzp.gamerule.zombies;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -14,7 +14,7 @@ public class CollisionRule {
 	private final Scoreboard board;
 	
 	public static final String TEAM_IN_GAME_PLAYERS = "team1";
-	public static final String TEAM_IN_GAME_NON_PLAYERS = "team2";
+	public static final String TEAM_IN_GAME_CORPSE = "corpse";
 	
 	private CollisionRule() {
 		
@@ -23,12 +23,14 @@ public class CollisionRule {
         
         
         this.teamInGamePlayers = board.registerNewTeam(TEAM_IN_GAME_PLAYERS);
-        this.teamInGamePlayers.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.FOR_OWN_TEAM);
-        this.teamInGamePlayers.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.NEVER);
+        this.teamInGamePlayers.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.NEVER);
+        this.teamInGamePlayers.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.FOR_OWN_TEAM);
         
-        this.teamInGameNonPlayers = board.registerNewTeam(TEAM_IN_GAME_NON_PLAYERS);
-        this.teamInGamePlayers.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.FOR_OTHER_TEAMS);
-        this.teamInGamePlayers.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.NEVER);
+        this.teamInGameNonPlayers = board.registerNewTeam(TEAM_IN_GAME_CORPSE);
+        this.teamInGameNonPlayers.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.FOR_OTHER_TEAMS);
+        this.teamInGameNonPlayers.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.NEVER);
+        
+       
         
 	}
 	
