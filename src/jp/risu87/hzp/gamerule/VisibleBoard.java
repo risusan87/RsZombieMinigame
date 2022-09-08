@@ -1,4 +1,4 @@
-package jp.risu87.hzp.gamerule.zombies;
+package jp.risu87.hzp.gamerule;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -8,7 +8,6 @@ import java.util.UUID;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.Score;
@@ -55,7 +54,7 @@ public class VisibleBoard {
 		ingameBoard.setLine(13, "" + ChatColor.RED + ChatColor.BOLD + "Round " + ingameRound);
 		ingameBoard.setLine(12, "" + ChatColor.WHITE + "Zombies Left: " + ChatColor.GREEN + ingameZombiesLeft);
 		ingameBoard.setLine(10, "" + ChatColor.WHITE + "Shirokuma_Risu: " + ChatColor.GOLD + "TENSAI");
-		ingameBoard.setLine(9, "" + ChatColor.WHITE + "Quint1220: " + ChatColor.RED + "AHO^^");
+		ingameBoard.setLine(9, "" + ChatColor.WHITE + "Quint1220: " + ChatColor.RED + "AHO");
 		ingameBoard.setLine(8, "" + ChatColor.GRAY + "EMPTY");
 		ingameBoard.setLine(7, "" + ChatColor.GRAY + "EMPTY ");
 		ingameBoard.setLine(5, "" + ChatColor.WHITE + "Zombie Kills: " + ChatColor.GREEN + "114,514");
@@ -141,13 +140,11 @@ public class VisibleBoard {
 		
 		private Objective obj;
 		private String title;
-		
-		private final Scoreboard sb;
+
 		private final List<String> lines;
 		
 		public BoardSidebar(String title) {
 			this.title = title;
-			this.sb = Bukkit.getScoreboardManager().getNewScoreboard();
 			this.lines = new ArrayList<String>();	
 		}
 		
@@ -167,16 +164,17 @@ public class VisibleBoard {
 			if (this.obj != null) {
 				obj.unregister();
 			}
-			this.obj = this.sb.registerNewObjective("obj", "dummy");
+			this.obj = GameRunningRule.getZombies().scoreboard.registerNewObjective("obj", "dummy");
 			this.obj.setDisplayName(title);
 			this.obj.setDisplaySlot(DisplaySlot.SIDEBAR);
-			
+			//this.obj.set
 			for (int i = this.lines.size(); i > 0; i--) {
 				Score s = this.obj.getScore(this.lines.get(i - 1));
+				
 				s.setScore(i);
 			}
 			
-			return this.sb;
+			return GameRunningRule.getZombies().scoreboard;
 		}
 		
 	}

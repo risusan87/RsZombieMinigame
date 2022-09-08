@@ -20,7 +20,7 @@ import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 
 import jp.risu87.hzp.HypixelZombiesProject;
-import jp.risu87.hzp.gamerule.zombies.CollisionRule;
+import jp.risu87.hzp.gamerule.CollisionRule;
 import jp.risu87.hzp.util.DummyNetworkManager;
 import net.minecraft.server.v1_12_R1.EntityPlayer;
 import net.minecraft.server.v1_12_R1.EnumProtocolDirection;

@@ -1,4 +1,4 @@
-package jp.risu87.hzp.gamerule.zombies;
+package jp.risu87.hzp.gamerule;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -6,7 +6,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.scoreboard.Scoreboard;
 
 import jp.risu87.hzp.HypixelZombiesProject;
 
@@ -16,9 +18,11 @@ public class GameRunningRule {
 	
 	protected final Map<UUID, GameProfile> inServerPlayers;
 	protected GameState gameState = GameState.EDIT;
+	protected final Scoreboard scoreboard;
 	
 	private GameRunningRule() {
 		
+		this.scoreboard = Bukkit.getScoreboardManager().getNewScoreboard();
 		this.inServerPlayers = new HashMap<UUID, GameProfile>();
 		HypixelZombiesProject.getPlugin().getServer().getOnlinePlayers().forEach(p -> {
 			System.out.println(p + " put");

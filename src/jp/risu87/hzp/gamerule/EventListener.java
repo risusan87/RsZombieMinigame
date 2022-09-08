@@ -30,7 +30,6 @@ import org.bukkit.plugin.messaging.Messenger;
 import org.bukkit.util.Vector;
 
 import jp.risu87.hzp.entity.Zombie;
-import jp.risu87.hzp.gamerule.zombies.GameRunningRule;
 import net.minecraft.server.v1_12_R1.EntityZombie;
 import net.minecraft.server.v1_12_R1.WorldServer;
 

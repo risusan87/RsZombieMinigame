@@ -1,4 +1,4 @@
-package jp.risu87.hzp.gamerule.zombies;
+package jp.risu87.hzp.gamerule;
 
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;

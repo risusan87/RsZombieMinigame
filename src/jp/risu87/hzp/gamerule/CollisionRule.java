@@ -1,4 +1,4 @@
-package jp.risu87.hzp.gamerule.zombies;
+package jp.risu87.hzp.gamerule;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -10,27 +10,16 @@ public class CollisionRule {
 	
 	private static CollisionRule rule;
 	private final Team teamInGamePlayers;
-	private final Team teamInGameNonPlayers;
-	private final Scoreboard board;
 	
 	public static final String TEAM_IN_GAME_PLAYERS = "team1";
 	public static final String TEAM_IN_GAME_CORPSE = "corpse";
 	
 	private CollisionRule() {
-		
-		ScoreboardManager sm = Bukkit.getScoreboardManager();
-        this.board = sm.getNewScoreboard();
         
-        
-        this.teamInGamePlayers = board.registerNewTeam(TEAM_IN_GAME_PLAYERS);
+		Scoreboard sb = GameRunningRule.getZombies().scoreboard;
+        this.teamInGamePlayers = sb.registerNewTeam(TEAM_IN_GAME_PLAYERS);
         this.teamInGamePlayers.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.NEVER);
-        this.teamInGamePlayers.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.FOR_OWN_TEAM);
-        
-        this.teamInGameNonPlayers = board.registerNewTeam(TEAM_IN_GAME_CORPSE);
-        this.teamInGameNonPlayers.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.FOR_OTHER_TEAMS);
-        this.teamInGameNonPlayers.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.NEVER);
-        
-       
+        this.teamInGamePlayers.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.NEVER);   
         
 	}
 	
@@ -49,12 +38,14 @@ public class CollisionRule {
 	
     public void addPlayer(Player p, String team) {
         
-    	Team t = this.board.getTeam(team);
+    	Scoreboard sb = GameRunningRule.getZombies().scoreboard;
+    	Team t = sb.getTeam(team);
     	if (t == null)
     		return;
     	
         t.addEntry(p.getName());
-        p.setScoreboard(board);
+        p.setScoreboard(sb);
+        
     }
 
     public void removePlayer(Player p, String team) {
