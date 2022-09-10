@@ -21,11 +21,13 @@ import com.comphenix.protocol.events.PacketEvent;
 
 import jp.risu87.hzp.command.CommandHZP;
 import jp.risu87.hzp.entity.Zombie;
-import jp.risu87.hzp.gamerule.CollisionRule;
 import jp.risu87.hzp.gamerule.EventListener;
 import jp.risu87.hzp.gamerule.GameRunningRule;
+import jp.risu87.hzp.gamerule.GameStateRule;
+import jp.risu87.hzp.gamerule.GameStateRule.GameState;
 import jp.risu87.hzp.gamerule.PacketRule;
 import jp.risu87.hzp.gamerule.PermissionRule;
+import jp.risu87.hzp.gamerule.ScoreboardRule;
 import jp.risu87.hzp.gamerule.VisibleBoard;
 import jp.risu87.hzp.gamerule.VisibleBoard.BoardType;
 import jp.risu87.hzp.gamerule.gun.GameTracker;
@@ -77,11 +79,12 @@ public class HypixelZombiesProject extends JavaPlugin {
 				GameRunningRule.getZombies();
 				PermissionRule.setupPermissionRule();
 				GunRule.setupGunRule();
+				ScoreboardRule.getScoreboardRule();
 				VisibleBoard.setupBoard();
 				PacketRule.getPacketRule();
-				CollisionRule.setupCollisionRule(false);
+				GameStateRule.getGameStateRule();
 				
-				VisibleBoard.getBoard().setVisibleBoard(BoardType.INGAME);
+				GameStateRule.getGameStateRule().switchGameState(GameState.PLAY);
 			});
 		});
 		t.start();
@@ -119,7 +122,6 @@ public class HypixelZombiesProject extends JavaPlugin {
 	 */
 	@Override
 	public void onDisable() {
-		CollisionRule.disableCollisionRule();
 		VisibleBoard.disableVisibleBoard();
 	}
 	

@@ -1,8 +1,14 @@
 package jp.risu87.hzp.command;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -20,19 +26,25 @@ import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolManager;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.wrappers.BlockPosition;
+import com.google.gson.Gson;
+import com.google.gson.internal.LinkedTreeMap;
+import com.plugin.npc.NPC;
+
 import jp.risu87.hzp.HypixelZombiesProject;
-import jp.risu87.hzp.entity.DummyPlayer;
-import jp.risu87.hzp.gamerule.CollisionRule;
-import jp.risu87.hzp.gamerule.GameRunningRule;
 import jp.risu87.hzp.gamerule.PermissionRule;
-import jp.risu87.hzp.gamerule.VisibleBoard;
-import jp.risu87.hzp.gamerule.VisibleBoard.BoardType;
+import jp.risu87.hzp.gamerule.ScoreboardRule;
 import jp.risu87.hzp.gamerule.gun.GunBase;
 import jp.risu87.hzp.gamerule.gun.GunPistol;
 import jp.risu87.hzp.gamerule.gun.GunRule;
 import jp.risu87.hzp.gamerule.gun.GunType;
+import jp.risu87.hzp.gamerule.GameRunningRule;
+import jp.risu87.hzp.gamerule.VisibleBoard;
+import jp.risu87.hzp.gamerule.VisibleBoard.BoardType;
 import jp.risu87.hzp.util.ActionBarConstructor;
 import jp.risu87.hzp.util.ChatJsonBuilder;
+import net.minecraft.server.v1_12_R1.EnumItemSlot;
+import net.minecraft.server.v1_12_R1.ItemStack;
+import net.minecraft.server.v1_12_R1.Items;
 
 public class CommandHZP implements CommandExecutor, TabCompleter {
 	
@@ -41,8 +53,7 @@ public class CommandHZP implements CommandExecutor, TabCompleter {
 		commands.add(new CommandJoin());
 		commands.add(new CommandSaveLocation());
 	}
-	
-	static Entity en;
+
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 
@@ -78,32 +89,9 @@ public class CommandHZP implements CommandExecutor, TabCompleter {
 			return true;
 		}
 		
-		
-		if (args[0].equals("npc")) {
-			
-			en = DummyPlayer.spawnAt(pSender.getLocation());
-			CollisionRule.getCollisionRule().addPlayer((Player)en, CollisionRule.TEAM_IN_GAME_CORPSE);
-			
-	        return true;
-	        
-		}
-		
-		if (args[0].equals("tp")) {
-			
-			en.teleport(pSender);
-			((CraftEntity)en).getHandle().setInvisible(false);
-	        return true;
-	        
-		}
-		
-		if (args[0].equals("team")) {
-			
-			HypixelZombiesProject.getPlugin().getServer().getOnlinePlayers().forEach((uuid) -> {
-	        	CollisionRule.getCollisionRule().addPlayer(uuid, CollisionRule.TEAM_IN_GAME_PLAYERS);
-	        	//VisibleBoard.setupBoard().setVisibleBoard(BoardType.INGAME);
-		 });
-	        return true;
-	        
+		if (args[0].equals("setWorld")) {
+	        GameRunningRule.getZombies().setMainWorld(pSender.getWorld());
+			return true;
 		}
 		
 		

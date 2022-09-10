@@ -1,5 +1,9 @@
 package jp.risu87.hzp.gamerule;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -25,11 +29,16 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerToggleSneakEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.plugin.messaging.Messenger;
 import org.bukkit.util.Vector;
 
+import jp.risu87.hzp.entity.Corpse;
 import jp.risu87.hzp.entity.Zombie;
+import jp.risu87.hzp.gamerule.GameStateRule.GameProfile;
+import jp.risu87.hzp.gamerule.GameStateRule.PlayerState;
+import net.minecraft.server.v1_12_R1.EntityPlayer;
 import net.minecraft.server.v1_12_R1.EntityZombie;
 import net.minecraft.server.v1_12_R1.WorldServer;
 
@@ -68,6 +77,7 @@ public class EventListener implements Listener {
 		//event.getPlayer().kickPlayer("Server under maintenance");
 		GameRunningRule.getZombies().addPlayerIfNew(event.getPlayer());
 		event.setJoinMessage(event.getPlayer().getDisplayName() + " is here");
+		Corpse.reloadCorpsesFor(event.getPlayer());
 	}
 	
 	@EventHandler
@@ -89,8 +99,9 @@ public class EventListener implements Listener {
 		}
 		Player p = (Player) event.getEntity();
 		if (event.getFinalDamage() >= p.getHealth()) {
-			p.sendMessage("You dead");
 			event.setCancelled(true);
+			p.setHealth(20);
+			new ReviveTask().knockdownPlayer(p.getUniqueId());
 		}
 	}
 	

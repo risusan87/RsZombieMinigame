@@ -14,6 +14,7 @@ import org.bukkit.scoreboard.Score;
 import org.bukkit.scoreboard.Scoreboard;
 
 import jp.risu87.hzp.HypixelZombiesProject;
+import jp.risu87.hzp.gamerule.GameStateRule.GameProfile;
 
 public class VisibleBoard {
 
@@ -164,7 +165,7 @@ public class VisibleBoard {
 			if (this.obj != null) {
 				obj.unregister();
 			}
-			this.obj = GameRunningRule.getZombies().scoreboard.registerNewObjective("obj", "dummy");
+			this.obj = ScoreboardRule.getScoreboardRule().scoreboard.registerNewObjective("obj", "dummy");
 			this.obj.setDisplayName(title);
 			this.obj.setDisplaySlot(DisplaySlot.SIDEBAR);
 			//this.obj.set
@@ -174,7 +175,7 @@ public class VisibleBoard {
 				s.setScore(i);
 			}
 			
-			return GameRunningRule.getZombies().scoreboard;
+			return ScoreboardRule.getScoreboardRule().scoreboard;
 		}
 		
 	}

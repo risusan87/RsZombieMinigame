@@ -129,7 +129,7 @@ public abstract class GunBase {
 		Map<String, Float[]> att = new HashMap<String, Float[]>(8);
 		att.put(RELOAD_TIME, new Float[] {1.5f, 1.0f});
 		att.put(SHOOT_INTERVAL, new Float[] {0.5f, 0.4f});
-		att.put(MAX_AMMO, new Float[] {300.f, 14.f});
+		att.put(MAX_AMMO, new Float[] {300.f, 450.f});
 		att.put(MAX_CLIP_AMMO, new Float[] {10.f, 14.f});
 		att.put(BURST_COUNT, new Float[] {1f, 2f});
 		att.put(BURST_INTERVAL, new Float[] {0.f, 0.1f});

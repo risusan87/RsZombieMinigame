@@ -16,7 +16,7 @@ public class ActionBarConstructor {
 	
 	private int counterTaskID = -1;
 	private boolean disable = true;
-	private final ChatJsonBuilder json;
+	private ChatJsonBuilder json;
 	private final List<Player> viewers;
 	private final Runnable runnable;
 	
@@ -25,11 +25,6 @@ public class ActionBarConstructor {
 		this.viewers = new ArrayList<Player>();
 		this.json = message;
 		
-		IChatBaseComponent cbc = IChatBaseComponent.ChatSerializer.a(message.toString());
-		IChatBaseComponent emptyChat = IChatBaseComponent.ChatSerializer.a((String)("{\"text\": \"\"}"));
-		
-		PacketPlayOutChat text = new PacketPlayOutChat(cbc, ChatMessageType.a((byte) 2));
-		PacketPlayOutChat empty = new PacketPlayOutChat(emptyChat, ChatMessageType.a((byte) 2));
 		
 		HypixelZombiesProject plugin = HypixelZombiesProject.getPlugin();
 		BukkitScheduler schedular = plugin.getServer().getScheduler();
@@ -38,6 +33,12 @@ public class ActionBarConstructor {
 			
 			@Override
 			public void run() {
+				
+				IChatBaseComponent cbc = IChatBaseComponent.ChatSerializer.a(json.toString());
+				IChatBaseComponent emptyChat = IChatBaseComponent.ChatSerializer.a((String)("{\"text\": \"\"}"));
+				
+				PacketPlayOutChat text = new PacketPlayOutChat(cbc, ChatMessageType.a((byte) 2));
+				PacketPlayOutChat empty = new PacketPlayOutChat(emptyChat, ChatMessageType.a((byte) 2));
 				
 				if (cc.disable && cc.counterTaskID != -1) {
 					cc.viewers.forEach( player -> {
@@ -57,6 +58,9 @@ public class ActionBarConstructor {
 		
 	}
 	
+	public void editMessage (ChatJsonBuilder msg) {
+		this.json = msg;
+	}
 	public void setTextVisible(boolean visible) {
 		
 		if (!visible) {
