@@ -75,9 +75,10 @@ public class EventListener implements Listener {
 	@EventHandler
 	public void onPlayerJoin(PlayerJoinEvent event) {
 		//event.getPlayer().kickPlayer("Server under maintenance");
-		GameRunningRule.getZombies().addPlayerIfNew(event.getPlayer());
-		event.setJoinMessage(event.getPlayer().getDisplayName() + " is here");
-		Corpse.reloadCorpsesFor(event.getPlayer());
+		System.out.println("Fired");
+		if (event.getPlayer() instanceof Player) {
+			System.out.println("Player");
+		}
 	}
 	
 	@EventHandler

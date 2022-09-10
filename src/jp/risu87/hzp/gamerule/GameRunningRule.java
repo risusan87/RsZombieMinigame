@@ -27,6 +27,7 @@ public class GameRunningRule {
 		this.inServerPlayers = new HashMap<UUID, GameProfile>();
 		HypixelZombiesProject.getPlugin().getServer().getOnlinePlayers().forEach(p -> {
 			this.inServerPlayers.put(p.getUniqueId(), new GameProfile(p));
+			if (mainWorld == null) mainWorld = p.getWorld();
 		});
 		
 	}

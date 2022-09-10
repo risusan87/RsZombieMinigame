@@ -67,7 +67,7 @@ public class Corpse extends NPC {
 	
 	@SuppressWarnings("rawtypes")
 	public Corpse(Player owner) {
-		super(owner.getName(), owner.getLocation(), HypixelZombiesProject.getPlugin());
+		super("", owner.getLocation(), HypixelZombiesProject.getPlugin());
 		
 		this.owner = owner;
 		String rawJson = "";
