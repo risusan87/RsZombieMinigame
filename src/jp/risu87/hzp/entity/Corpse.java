@@ -162,4 +162,14 @@ public class Corpse extends NPC {
 			c.destroy();
 		});
 	}
+	
+	public void kill() {
+		for (Corpse c : corpses) {
+			if (c.equals(this)) {
+				c.destroy();
+				corpses.remove(c);
+				return;
+			}
+		}
+	}
 }

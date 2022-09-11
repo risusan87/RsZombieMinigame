@@ -51,10 +51,10 @@ public class PlayerDeathRule {
 	public void knockdownPlayer(UUID p) {
 
 		GameProfile profile = GameRunningRule.getZombies().getInGamePlayers().get(p);
-		Corpse playerCorpse = new Corpse(Bukkit.getPlayer(p));
 		
 		if (profile != null && profile.playerState == PlayerState.IN_GAME_ALIVE) {
-
+			
+			Corpse playerCorpse = new Corpse(Bukkit.getPlayer(p));
 			Player profileOwner = Bukkit.getPlayer(p);
 			profile.playerState = PlayerState.IN_GAME_DOWN;
 			
@@ -70,7 +70,6 @@ public class PlayerDeathRule {
 			saveInventory(profileOwner);
 
 			((CraftEntity)profileOwner).getHandle().setInvisible(true);
-			playerCorpse.setInvisible(false);
 
 			scheduleKnockdownTask(profileOwner, playerCorpse);
 		}
@@ -121,7 +120,7 @@ public class PlayerDeathRule {
 					actionBar.setTextVisible(false);
 					actionBar.editMessage(new ChatJsonBuilder().withText(String.format("Reviving %s %.1f", profileOwner.getName(), this.revRemaining)));
 					actionBar.setTextVisible(true);
-					hologram.setCustomName(String.format("Being revived %.1f ", this.revLifeRemaining));
+					hologram.setCustomName(String.format("Being revived %.1f ", this.revRemaining));
 					// player cancels revive
 					if (!reviver.isSneaking()) {
 						this.scheduleKnockdownTask(profileOwner, playerCorpse);
@@ -145,7 +144,7 @@ public class PlayerDeathRule {
 						restoreInventory(profileOwner);
 
 						((CraftPlayer)profileOwner).getHandle().setInvisible(false);
-						playerCorpse.setInvisible(true);
+						playerCorpse.kill();
 
 						profileOwner.setGameMode(GameMode.ADVENTURE);
 						
