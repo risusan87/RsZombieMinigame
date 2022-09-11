@@ -5,5 +5,5 @@ yet goal of this project is to freely customise guns, zombies, and more system t
 
 Development Progress: https://github.com/risusan87/RsZombieMinigame/milestones </br>
 
-Want to contribute? Found bugs? DM me in discord at kitsui#8381
-Discord community: https://discord.gg/TSP5TVFg8J 
+Want to contribute? Found bugs? DM me in discord at kitsui#8381 </br>
+Want to debug in my server? join discord community: https://discord.gg/TSP5TVFg8J 
