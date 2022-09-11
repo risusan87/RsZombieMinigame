@@ -107,7 +107,7 @@ public class VisibleBoard {
 	
 	public void setVisibleBoard(BoardType type) {
 		this.currentBoard = type;
-		GameRunningRule.getZombies().inServerPlayers.forEach((uuid, profile) -> {
+		GameRunningRule.getZombies().getInGamePlayers().forEach((uuid, profile) -> {
 			Scoreboard sb; 
 			if (type != BoardType.INVISIBLE) 
 				sb = VisibleBoard.getBoard().boardMap.get(type).getScoreboard();
@@ -130,7 +130,7 @@ public class VisibleBoard {
 	
 	public static void disableVisibleBoard() {
 		
-		GameRunningRule.getZombies().inServerPlayers.forEach((uuid, profile) -> {
+		GameRunningRule.getZombies().getInGamePlayers().forEach((uuid, profile) -> {
 			Bukkit.getPlayer(uuid).setScoreboard(Bukkit.getScoreboardManager().getNewScoreboard());
 		});
 		board = null;

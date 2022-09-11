@@ -243,7 +243,7 @@ public class NPC {
 		if(!this.isDestroyed) {
 			PacketPlayOutEntityDestroy packet = new PacketPlayOutEntityDestroy(new int[] { this.entityId });
 			this.sendPacket(packet);
-			this.spawn(true, true);
+			this.spawn(false, true);
 		}	
 	}
 

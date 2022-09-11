@@ -7,7 +7,7 @@ import org.bukkit.entity.Player;
 public class GamemodeRule {
 	
 	public void applyGamemode() {
-		GameRunningRule.getZombies().inServerPlayers.forEach((uuid, profile) -> {
+		GameRunningRule.getZombies().getInGamePlayers().forEach((uuid, profile) -> {
 			
 			Player p = Bukkit.getPlayer(uuid);
 			

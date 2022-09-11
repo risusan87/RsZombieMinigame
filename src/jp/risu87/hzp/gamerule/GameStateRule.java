@@ -39,7 +39,7 @@ public class GameStateRule {
 		if (state == GameState.PLAY) {
 			VisibleBoard.getBoard().setVisibleBoard(BoardType.INGAME);
 			VisibleBoard.getBoard().ingameBoardTimerStart();
-			GameRunningRule.getZombies().inServerPlayers.forEach((uuid, profile) -> {
+			GameRunningRule.getZombies().getInGamePlayers().forEach((uuid, profile) -> {
 				Player p = Bukkit.getPlayer(uuid);
 				if (profile.playerState == PlayerState.IN_GAME_ALIVE) {
 					
@@ -79,7 +79,7 @@ public class GameStateRule {
 		EDIT
 	}
 	
-	protected static class GameProfile {
+	public static class GameProfile {
 		
 		//general
 		public PlayerState playerState = PlayerState.IN_GAME_ALIVE;
@@ -88,9 +88,9 @@ public class GameStateRule {
 		
 		//reviving
 		public Corpse playerCorpse;
+		public ItemStack[] savedInventory;
 		
-		public GameProfile(Player owner) {
-			this.playerCorpse = new Corpse(owner);
+		protected GameProfile(Player owner) {
 		}
 		
 	}

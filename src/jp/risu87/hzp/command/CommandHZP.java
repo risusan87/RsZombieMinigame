@@ -31,6 +31,7 @@ import com.google.gson.internal.LinkedTreeMap;
 import com.plugin.npc.NPC;
 
 import jp.risu87.hzp.HypixelZombiesProject;
+import jp.risu87.hzp.entity.Corpse;
 import jp.risu87.hzp.gamerule.PermissionRule;
 import jp.risu87.hzp.gamerule.ScoreboardRule;
 import jp.risu87.hzp.gamerule.gun.GunBase;
@@ -89,8 +90,15 @@ public class CommandHZP implements CommandExecutor, TabCompleter {
 			return true;
 		}
 		
-		if (args[0].equals("setWorld")) {
-	        GameRunningRule.getZombies().setMainWorld(pSender.getWorld());
+		if (args[0].equals("show")) {
+			Corpse c = GameRunningRule.getZombies().getInGamePlayers().get(pSender.getUniqueId()).playerCorpse;
+	        Corpse.showCorpse(c);
+			return true;
+		}
+		
+		if (args[0].equals("hide")) {
+			Corpse c = GameRunningRule.getZombies().getInGamePlayers().get(pSender.getUniqueId()).playerCorpse;
+	        c.setInvisible(true);
 			return true;
 		}
 		

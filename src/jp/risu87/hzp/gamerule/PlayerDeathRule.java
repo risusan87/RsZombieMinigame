@@ -24,7 +24,22 @@ import jp.risu87.hzp.util.ActionBarConstructor;
 import jp.risu87.hzp.util.ChatJsonBuilder;
 import net.minecraft.server.v1_12_R1.EntityPlayer;
 
-public class ReviveTask {
+/**
+ * Class {@link PlayerDeathRule} provides methods to make custom behaviors under regarding deaths of players.<br>
+ * Use of this class should be pretty straight forward.<br>
+ * For example, to make player Player123 knocked down state: <br>
+ * <br>
+ * {@code Player player = Bukkit.getPlayer("Player123");} <br>
+ * {@code new ReviveTask().knockdownPlayer(player.getUniqueID());}<br>
+ * <br>
+ * Brand new instances are mandatory for each player to work.<br>
+ * Do NOT reuse instances between different players.<br>
+ * <br>
+ * Methods in this class will not function if target players are under mismatch {@link PlayerState}.<br>
+ * Such like calling knockdownPlayer() 
+ * for a player who is already dead.
+ */
+public class PlayerDeathRule {
 
 	private int reviveLookforTaskID = -1;
 	private int reviveTickingTaskID = -1;
@@ -32,16 +47,11 @@ public class ReviveTask {
 	private float revRemaining = 1.5f;
 	
 	private ArmorStand hologram;
-
-	/**
-	 * Call this to make player knocked down.
-	 * @param p
-	 * @param playerCorpse
-	 */
+	
 	public void knockdownPlayer(UUID p) {
 
-		GameProfile profile = GameRunningRule.getZombies().inServerPlayers.get(p);
-		Corpse playerCorpse = profile.playerCorpse;
+		GameProfile profile = GameRunningRule.getZombies().getInGamePlayers().get(p);
+		Corpse playerCorpse = new Corpse(Bukkit.getPlayer(p));
 		
 		if (profile != null && profile.playerState == PlayerState.IN_GAME_ALIVE) {
 
@@ -88,7 +98,7 @@ public class ReviveTask {
 			hologram.setCustomName(String.format("Dies in %.1f sec", this.revLifeRemaining));
 			// if time runs out
 			if (this.revLifeRemaining <= 0f) {
-				GameRunningRule.getZombies().inServerPlayers.get(profileOwner.getUniqueId()).playerState = PlayerState.IN_GAME_DEAD;
+				GameRunningRule.getZombies().getInGamePlayers().get(profileOwner.getUniqueId()).playerState = PlayerState.IN_GAME_DEAD;
 				profileOwner.setGameMode(GameMode.CREATIVE);
 				HypixelZombiesProject.getSchedular().cancelTask(reviveLookforTaskID);
 				hologram.setHealth(0);
@@ -126,7 +136,7 @@ public class ReviveTask {
 					if (this.revRemaining <= 0f) {
 
 						HypixelZombiesProject.getSchedular().cancelTask(reviveTickingTaskID);
-						GameProfile profile = GameRunningRule.getZombies().inServerPlayers.get(profileOwner.getUniqueId());
+						GameProfile profile = GameRunningRule.getZombies().getInGamePlayers().get(profileOwner.getUniqueId());
 						profile.playerState = PlayerState.IN_GAME_ALIVE;
 
 						ScoreboardRule.getScoreboardRule().removePlayer(profileOwner, ScoreboardRule.TEAM_CORPSE);
@@ -147,15 +157,16 @@ public class ReviveTask {
 					}
 				}, 0, 2);
 	}
-
+	
 	private void saveInventory(Player p) {
-		GameRunningRule.getZombies().inServerPlayers.get(p.getUniqueId()).playerCorpse.savedInventory 
-			= p.getInventory().getContents();
+		GameRunningRule.getZombies().getInGamePlayers().get(p.getUniqueId()).savedInventory 
+				= p.getInventory().getContents();
 		p.getInventory().clear();
 	}
 	
 	private void restoreInventory(Player p) {
-		ItemStack[] saved = GameRunningRule.getZombies().inServerPlayers.get(p.getUniqueId()).playerCorpse.savedInventory;
+		ItemStack[] saved = GameRunningRule.getZombies().getInGamePlayers().get(p.getUniqueId()).savedInventory;
 		p.getInventory().setContents(saved);
+		GameRunningRule.getZombies().getInGamePlayers().get(p.getUniqueId()).savedInventory = null;
 	}
 }

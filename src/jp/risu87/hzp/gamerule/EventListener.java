@@ -90,7 +90,7 @@ public class EventListener implements Listener {
 	public void onPlayerOpenInventory(InventoryClickEvent event) {
 		
 		InventoryType p = event.getClickedInventory().getType();
-		
+		System.out.println("invoke");
 	}
 	
 	@EventHandler
@@ -102,7 +102,7 @@ public class EventListener implements Listener {
 		if (event.getFinalDamage() >= p.getHealth()) {
 			event.setCancelled(true);
 			p.setHealth(20);
-			new ReviveTask().knockdownPlayer(p.getUniqueId());
+			new PlayerDeathRule().knockdownPlayer(p.getUniqueId());
 		}
 	}
 	

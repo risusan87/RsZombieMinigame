@@ -26,6 +26,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.util.Vector;
 
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolManager;
@@ -58,7 +59,6 @@ import net.minecraft.server.v1_12_R1.WorldServer;
 
 public class Corpse extends NPC {
 	
-	public ItemStack[] savedInventory;
 	public final Player owner;
 	public static Corpse corpse;
 	private int corpseTrackingID = -1;
@@ -70,6 +70,7 @@ public class Corpse extends NPC {
 		super("", owner.getLocation(), HypixelZombiesProject.getPlugin());
 		
 		this.owner = owner;
+		corpses.add(this);
 		String rawJson = "";
 		try {
 			String str_url = "https://sessionserver.mojang.com/session/minecraft/profile/" + owner.getUniqueId().toString() + "?unsigned=false";
@@ -94,9 +95,11 @@ public class Corpse extends NPC {
             this.setSkin(texture, signature);
         }
 		
+        this.setRecipientType(Recipient.ALL);
+        
 		this.spawn(false, true);
-		this.setInvisible(true);
 		this.setSleep(true);
+		
 	}
 	
 	public Entity getEntity() {
@@ -114,26 +117,36 @@ public class Corpse extends NPC {
 	 */
 	public void setInvisible(boolean flag) {
 		
-		((CraftEntity)getEntity()).getHandle().setInvisible(flag);
-		if (flag) {
-			this.corpseTrackingID = HypixelZombiesProject.getSchedular().scheduleSyncRepeatingTask(
-					getPlugin(), () -> {
-						this.teleport(owner.getLocation().toVector().toLocation(owner.getWorld()), true);
-					}, 0, 5);	
-			this.corpseTrackingID = -1;
-		} else {
-			if (this.corpseTrackingID != -1)
-				HypixelZombiesProject.getSchedular().cancelTask(this.corpseTrackingID);
-		}
+		this.setEffect(new MobEffect(MobEffectList.fromId(14), 1, 1, false, false));
 		
 	}
 	
-	public static void reloadCorpsesFor(Player player) {
-		corpses.forEach(c -> {
-			c.addRecipient(player);
-			c.reloadNpc();
-			c.removeRecipient(player);
+	public static void showCorpse(Corpse c) {
+		
+		GameRunningRule.getZombies().getInGamePlayers().forEach((uuid, profile) -> {
+			Player p = Bukkit.getPlayer(uuid);
+			c.addRecipient(p);
+			
+			c.teleport(c.owner.getLocation().toVector().toLocation(c.owner.getWorld()), true);
+			//c.setSleep(true);
+			c.removeRecipient(p);
 		});
+		HypixelZombiesProject.getSchedular().cancelTask(c.corpseTrackingID);
+		c.teleport(new Vector(0, 0, 0).toLocation(GameRunningRule.getZombies().getWorld()), false);
+	}
+	
+	public static void hideCorpse(Corpse c) {
+		GameRunningRule.getZombies().getInGamePlayers().forEach((uuid, profile) -> {
+			Player p = Bukkit.getPlayer(uuid);
+			c.addRecipient(p);
+			c.teleport(c.getLocation(), true);
+			//c.setSleep(true);
+			c.removeRecipient(p);
+		});
+		c.corpseTrackingID = HypixelZombiesProject.getSchedular().scheduleSyncRepeatingTask(
+				HypixelZombiesProject.getPlugin(), () -> {
+					c.teleport(c.owner.getLocation().toVector().toLocation(c.owner.getWorld()), true);
+				}, 0, 5);	
 	}
 	
 	public void removeCorpse() {
@@ -142,5 +155,11 @@ public class Corpse extends NPC {
 	
 	public void update() {
 		this.reloadNpc();
+	}
+	
+	public static void killCorpses() {
+		corpses.forEach(c -> {
+			c.destroy();
+		});
 	}
 }

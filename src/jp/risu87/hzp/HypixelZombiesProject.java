@@ -20,6 +20,7 @@ import com.comphenix.protocol.events.PacketAdapter;
 import com.comphenix.protocol.events.PacketEvent;
 
 import jp.risu87.hzp.command.CommandHZP;
+import jp.risu87.hzp.entity.Corpse;
 import jp.risu87.hzp.entity.Zombie;
 import jp.risu87.hzp.gamerule.EventListener;
 import jp.risu87.hzp.gamerule.GameRunningRule;
@@ -123,6 +124,7 @@ public class HypixelZombiesProject extends JavaPlugin {
 	@Override
 	public void onDisable() {
 		VisibleBoard.disableVisibleBoard();
+		Corpse.killCorpses();
 	}
 	
 	public static HypixelZombiesProject getPlugin() {

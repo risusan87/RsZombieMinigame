@@ -19,7 +19,7 @@ public class GameRunningRule {
 	
 	private static GameRunningRule rule = null;
 	
-	protected final Map<UUID, GameProfile> inServerPlayers;
+	private final Map<UUID, GameProfile> inServerPlayers;
 	private World mainWorld;
 	
 	private GameRunningRule() {
@@ -30,6 +30,10 @@ public class GameRunningRule {
 			if (mainWorld == null) mainWorld = p.getWorld();
 		});
 		
+	}
+	
+	public Map<UUID, GameProfile> getInGamePlayers() {
+		return new HashMap<UUID, GameProfile>(inServerPlayers);
 	}
 	
 	public void setMainWorld(World world) {
