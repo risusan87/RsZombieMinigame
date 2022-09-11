@@ -42,6 +42,7 @@ import jp.risu87.hzp.HypixelZombiesProject;
 import jp.risu87.hzp.gamerule.GameRunningRule;
 import jp.risu87.hzp.gamerule.ScoreboardRule;
 import jp.risu87.hzp.util.DummyNetworkManager;
+import net.minecraft.server.v1_12_R1.Blocks;
 import net.minecraft.server.v1_12_R1.EntityPlayer;
 import net.minecraft.server.v1_12_R1.EnumItemSlot;
 import net.minecraft.server.v1_12_R1.EnumProtocolDirection;
@@ -98,6 +99,10 @@ public class Corpse extends NPC {
         this.setRecipientType(Recipient.ALL);
         
 		this.spawn(false, true);
+		while (this.getLocation().getBlock().getType() == Material.AIR) {
+			this.teleport(this.getLocation().add(new Vector(0, -0.1f, 0)), true);
+		}
+		this.teleport(this.getLocation().add(new Vector(0, 0.2f, 0)), true);
 		this.setSleep(true);
 		
 	}
