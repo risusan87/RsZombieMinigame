@@ -99,6 +99,9 @@ public class Corpse extends NPC {
         this.setRecipientType(Recipient.ALL);
         
 		this.spawn(false, true);
+		Location finalLoc = this.getLocation().clone().toVector().toLocation(owner.getWorld());
+		finalLoc.setYaw(200f);
+		this.teleport(finalLoc, true);
 		while (this.getLocation().getBlock().getType() == Material.AIR) {
 			this.teleport(this.getLocation().add(new Vector(0, -0.1f, 0)), true);
 		}

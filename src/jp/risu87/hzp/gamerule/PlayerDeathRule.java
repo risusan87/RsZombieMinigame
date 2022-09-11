@@ -80,7 +80,8 @@ public class PlayerDeathRule {
 		// this task runs asynchronously yet synchronized with server thread.
 		HypixelZombiesProject plugin = HypixelZombiesProject.getPlugin();
 		Runnable reviveLookforTask = () -> {
-			Location corpseLoc = playerCorpse.getLocation();
+			Location corpseLoc = playerCorpse.getLocation().clone();
+			corpseLoc.add(0, 0, -1);
 			profileOwner.getWorld().getNearbyEntities(corpseLoc, 0.5, 0.5, 0.5).forEach(p -> {
 				if (!(p instanceof Player)) 
 					return;
