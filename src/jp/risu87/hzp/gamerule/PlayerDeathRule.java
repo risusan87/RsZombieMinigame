@@ -51,6 +51,8 @@ public class PlayerDeathRule {
 	private ArmorStand vehicle;
 	private ArmorStand vehicle2;
 	
+	private Player profileOwner;
+	
 	public void knockdownPlayer(UUID p) {
 
 		GameProfile profile = GameRunningRule.getZombies().getInGamePlayers().get(p);
@@ -59,11 +61,12 @@ public class PlayerDeathRule {
 			
 			Corpse playerCorpse = new Corpse(Bukkit.getPlayer(p));
 			System.out.println(playerCorpse.getEntity());
-			Player profileOwner = Bukkit.getPlayer(p);
+			this.profileOwner = Bukkit.getPlayer(p);
 			profile.playerState = PlayerState.IN_GAME_DOWN;
 			Location baseLoc = playerCorpse.getLocation().clone();
 			baseLoc.add(0, 0, -1);
 			profileOwner.teleport(baseLoc);
+			profile.deathRule = this;
 			
 			hologram = (ArmorStand)profileOwner.getWorld().spawnEntity(baseLoc.clone().add(0, -1, 0), EntityType.ARMOR_STAND);
 			((CraftEntity)hologram).getHandle().setInvisible(true);
@@ -101,6 +104,7 @@ public class PlayerDeathRule {
 		// this task runs asynchronously yet synchronized with server thread.
 		HypixelZombiesProject plugin = HypixelZombiesProject.getPlugin();
 		Runnable reviveLookforTask = () -> {
+
 			Location corpseLoc = playerCorpse.getLocation().clone();
 			corpseLoc.add(0, 0, -1);
 			profileOwner.getWorld().getNearbyEntities(corpseLoc, 0.5, 0.5, 0.5).forEach(p -> {
@@ -144,7 +148,7 @@ public class PlayerDeathRule {
 		HypixelZombiesProject plugin = HypixelZombiesProject.getPlugin();
 		this.reviveTickingTaskID = plugin.getServer().getScheduler().scheduleSyncRepeatingTask(
 				plugin, () -> {
-					
+
 					hologram.setCustomName(String.format("Being revived %.1f ", this.revRemaining));
 					// player cancels revive
 					if (!reviver.isSneaking()) {
@@ -183,6 +187,17 @@ public class PlayerDeathRule {
 						return;
 					}
 				}, 0, 2);
+	}
+	
+	public void remount() {
+		this.vehicle.setPassenger(this.profileOwner);
+	}
+	
+	private void sneakCheck() {
+		if(this.profileOwner.isSneaking()) {
+			System.out.println("remount");
+			this.remount();
+		}
 	}
 	
 	private void saveInventory(Player p) {

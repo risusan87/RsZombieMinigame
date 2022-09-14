@@ -68,10 +68,8 @@ public class GameStateRule {
 		IN_GAME_ALIVE,
 		IN_GAME_DOWN,
 		IN_GAME_DEAD,
-		IN_GAME_QUIT,
 		SPECTATOR,
 		EDITOR,
-		INLOBBY;
 	}
 	
 	public static enum GameState {
@@ -85,10 +83,12 @@ public class GameStateRule {
 		public PlayerState playerState = PlayerState.IN_GAME_ALIVE;
 		public int purseGold;
 		public int kills;
+		public boolean isQuit = false;
 		
 		//reviving
 		public Corpse playerCorpse;
 		public ItemStack[] savedInventory;
+		public PlayerDeathRule deathRule = null;
 		
 		protected GameProfile(Player owner) {
 		}

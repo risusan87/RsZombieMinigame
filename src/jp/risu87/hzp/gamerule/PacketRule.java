@@ -1,5 +1,8 @@
 package jp.risu87.hzp.gamerule;
 
+import java.io.IOException;
+import java.lang.reflect.Field;
+
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.events.ListenerPriority;
 import com.comphenix.protocol.events.PacketAdapter;
@@ -8,6 +11,7 @@ import com.comphenix.protocol.events.PacketListener;
 import com.comphenix.protocol.wrappers.EnumWrappers.ChatType;
 
 import jp.risu87.hzp.HypixelZombiesProject;
+import net.minecraft.server.v1_12_R1.PacketPlayInSteerVehicle;
 
 public class PacketRule {
 	
@@ -15,7 +19,7 @@ public class PacketRule {
 	
 	private final PacketAdapter packetParticle;
 	private final PacketAdapter packetSound;
-	private final PacketAdapter packetActionBar;
+	private final PacketAdapter vehicle;
 	
 	public PacketRule() {
 		
@@ -53,22 +57,34 @@ public class PacketRule {
 							);
 				}
 		};
+
 		
-		this.packetActionBar = new PacketAdapter(
-				HypixelZombiesProject.getPlugin(),
-				ListenerPriority.NORMAL,
-				PacketType.Play.Server.CHAT
-			) {
-				@Override
-				public void onPacketSending(PacketEvent event) {
-					ChatType type = event.getPacket().getChatTypes().read(0);
-					System.out.println(type);
-				}
+		this.vehicle = new PacketAdapter(
+					HypixelZombiesProject.getPlugin(),
+					ListenerPriority.NORMAL,
+					PacketType.Play.Client.STEER_VEHICLE
+				) {
+					@Override
+					public void onPacketReceiving(PacketEvent event) {
+						
+						try {
+							Field d = PacketPlayInSteerVehicle.class.getDeclaredField("d");
+				            d.setAccessible(true);
+				            d.set((PacketPlayInSteerVehicle)event.getPacket().getHandle(), false);
+						} catch (NoSuchFieldException e) {
+							e.printStackTrace();
+						} catch (SecurityException e) {
+							e.printStackTrace();
+						} catch (IllegalAccessException e) {
+							e.printStackTrace();
+						}
+					}
+			
 		};
 		
 		HypixelZombiesProject.getPlugin().getProtocolManager().addPacketListener(this.packetParticle);
 		HypixelZombiesProject.getPlugin().getProtocolManager().addPacketListener(this.packetSound);
-		HypixelZombiesProject.getPlugin().getProtocolManager().addPacketListener(this.packetActionBar);
+		HypixelZombiesProject.getPlugin().getProtocolManager().addPacketListener(this.vehicle);
 		
 	}
 	

@@ -57,7 +57,6 @@ public class HypixelZombiesProject extends JavaPlugin {
 		
 		this.protocolManager = ProtocolLibrary.getProtocolManager();
 		
-		
 		Listener listener = new EventListener();
 		Listener gunlistener = new GameTracker();
 		this.getServer().getPluginManager().registerEvents(listener, this);

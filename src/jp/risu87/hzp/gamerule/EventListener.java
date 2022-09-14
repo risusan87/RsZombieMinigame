@@ -2,6 +2,7 @@ package jp.risu87.hzp.gamerule;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -74,24 +75,20 @@ public class EventListener implements Listener {
 	
 	@EventHandler
 	public void onPlayerJoin(PlayerJoinEvent event) {
-		//event.getPlayer().kickPlayer("Server under maintenance");
-		System.out.println("Fired");
-		if (event.getPlayer() instanceof Player) {
-			System.out.println("Player");
+
+		GameProfile profile = GameRunningRule.getZombies().getInGamePlayers().get(event.getPlayer().getUniqueId());
+		if (profile == null) {
+			GameRunningRule.getZombies().addPlayerIfNew(event.getPlayer());
+			return;
 		}
+		profile.isQuit = false;
+		
 	}
 	
 	@EventHandler
 	public void onPlayerLeave(PlayerQuitEvent event) {
-		PlayerState state = GameRunningRule.getZombies().getInGamePlayers().get(event.getPlayer().getUniqueId()).playerState;
-		if (
-				state == PlayerState.IN_GAME_ALIVE ||
-				state == PlayerState.IN_GAME_DEAD ||
-				state == PlayerState.IN_GAME_DOWN
-		) {
-			GameRunningRule.getZombies().getInGamePlayers().get(event.getPlayer().getUniqueId()).playerState = PlayerState.IN_GAME_QUIT;
-			return;
-		}
+		
+		GameRunningRule.getZombies().getInGamePlayers().get(event.getPlayer().getUniqueId()).isQuit = true;
 	}
 	
 	@EventHandler
@@ -117,14 +114,6 @@ public class EventListener implements Listener {
 			event.setCancelled(true);
 			return;
 		}
-	}
-	
-	public void onPlayerShift(PlayerToggleSneakEvent event) {
-		
-		if (GameRunningRule.getZombies().getInGamePlayers().get(event.getPlayer().getUniqueId()).playerState == PlayerState.IN_GAME_DOWN) {
-			event.setCancelled(true);
-		}
-		
 	}
 	
 }
