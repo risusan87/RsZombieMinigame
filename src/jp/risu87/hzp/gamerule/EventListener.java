@@ -103,6 +103,11 @@ public class EventListener implements Listener {
 			event.setCancelled(true);
 			p.setHealth(20);
 			new PlayerDeathRule().knockdownPlayer(p.getUniqueId());
+			return;
+		}
+		if (GameRunningRule.getZombies().getInGamePlayers().get(p.getUniqueId()).playerState == PlayerState.IN_GAME_DOWN) {
+			event.setCancelled(true);
+			return;
 		}
 	}
 	

@@ -54,7 +54,6 @@ public class ChatJsonBuilder {
 
 	public ChatJsonBuilder withText(String text) {
 		text = text.replaceAll("\"", Matcher.quoteReplacement("\\\""));
-		System.out.println(text);
 		extras.add("{\"text\":\"" + text + "\"}");
 		return this;
 	}
@@ -103,7 +102,6 @@ public class ChatJsonBuilder {
 	}
 
 	public void sendJson(Player p) {
-		System.out.println(toString());
 		((CraftPlayer) p).getHandle().playerConnection.sendPacket(
 				new PacketPlayOutChat(ChatSerializer.a(toString())));
 	}

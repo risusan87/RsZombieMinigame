@@ -7,6 +7,7 @@ import jp.risu87.hzp.entity.ai.AILookAtFarPlayer;
 import jp.risu87.hzp.entity.ai.AIWalkTowardsPlayer;
 import net.minecraft.server.v1_12_R1.EntityZombie;
 import net.minecraft.server.v1_12_R1.GenericAttributes;
+import net.minecraft.server.v1_12_R1.PathfinderGoalMeleeAttack;
 import net.minecraft.server.v1_12_R1.PathfinderGoalSelector;
 import net.minecraft.server.v1_12_R1.PathfinderGoalZombieAttack;
 import net.minecraft.server.v1_12_R1.World;
@@ -46,8 +47,8 @@ public class Zombie extends EntityZombie {
 		}
 		
 		this.goalSelector.a(0, new AILookAtFarPlayer(this));
-	    this.targetSelector.a(1, new AIWalkTowardsPlayer(this, 1.0D));
-	    this.goalSelector.a(2, new PathfinderGoalZombieAttack(this, 1.0d, false));
+	    //this.targetSelector.a(1, new AIWalkTowardsPlayer(this, 1.0D));
+	    this.goalSelector.a(2, new PathfinderGoalMeleeAttack(this, 1.0D, true));
 	    //this.goalSelector.a(5, new PathfinderGoalMoveTowardsRestriction(this, 1.0D));
 	    //this.goalSelector.a(7, new PathfinderGoalRandomStrollLand(this, 1.0D));
 	    //this.goalSelector.a(8, new PathfinderGoalLookAtPlayer(this, EntityHuman.class, 8.0f));
