@@ -1,5 +1,6 @@
 package jp.risu87.hzp.gamerule;
 
+import java.io.IOException;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
@@ -47,6 +48,7 @@ public class PlayerDeathRule {
 	private float revRemaining = 1.5f;
 	
 	private ArmorStand hologram;
+	private ArmorStand vehicle;
 	
 	public void knockdownPlayer(UUID p) {
 
@@ -55,14 +57,32 @@ public class PlayerDeathRule {
 		if (profile != null && profile.playerState == PlayerState.IN_GAME_ALIVE) {
 			
 			Corpse playerCorpse = new Corpse(Bukkit.getPlayer(p));
+			System.out.println(playerCorpse.getEntity());
 			Player profileOwner = Bukkit.getPlayer(p);
 			profile.playerState = PlayerState.IN_GAME_DOWN;
+			Location baseLoc = playerCorpse.getLocation().clone();
+			baseLoc.add(0, 0, -1);
+			profileOwner.teleport(baseLoc);
 			
-			hologram = (ArmorStand)profileOwner.getWorld().spawnEntity(profileOwner.getLocation().add(0, -1, 0), EntityType.ARMOR_STAND);
+			hologram = (ArmorStand)profileOwner.getWorld().spawnEntity(baseLoc.clone().add(0, -1, 0), EntityType.ARMOR_STAND);
 			((CraftEntity)hologram).getHandle().setInvisible(true);
 			hologram.setGravity(false);
 			hologram.setCustomName("HELOGDHWYUWD");
 			hologram.setCustomNameVisible(true);
+			
+			vehicle = (ArmorStand)profileOwner.getWorld().spawnEntity(baseLoc.clone().add(0, -2.5, 0), EntityType.ARMOR_STAND);
+			((CraftEntity)hologram).getHandle().setInvisible(true);
+			vehicle.setGravity(false);
+			
+			vehicle.setPassenger(profileOwner);
+			ActionBarConstructor ac = ActionBarConstructor.constractActionBarText(
+					new ChatJsonBuilder().withText("You are dead!"));
+			ac.addViewers(profileOwner);
+			ac.setTextVisible(true);
+			HypixelZombiesProject.getSchedular().scheduleSyncDelayedTask(
+					HypixelZombiesProject.getPlugin(), () -> {
+						ac.setTextVisible(false);
+					}, 10);
 			
 			ScoreboardRule.getScoreboardRule().removePlayer(profileOwner, ScoreboardRule.TEAM_IN_GAME_PLAYERS);
 			ScoreboardRule.getScoreboardRule().addPlayer(profileOwner, ScoreboardRule.TEAM_CORPSE);
@@ -99,9 +119,14 @@ public class PlayerDeathRule {
 			// if time runs out
 			if (this.revLifeRemaining <= 0f) {
 				GameRunningRule.getZombies().getInGamePlayers().get(profileOwner.getUniqueId()).playerState = PlayerState.IN_GAME_DEAD;
+				
+				profileOwner.teleport(profileOwner.getLocation().add(0,  2.5, 0));
 				profileOwner.setGameMode(GameMode.CREATIVE);
 				HypixelZombiesProject.getSchedular().cancelTask(reviveLookforTaskID);
-				hologram.setHealth(0);
+				
+				hologram.remove();
+				vehicle.remove();
+				
 				return;
 			}
 		};
@@ -114,13 +139,11 @@ public class PlayerDeathRule {
 				new ChatJsonBuilder().withText(String.format("Reviving %s %.1f", profileOwner.getName(), this.revRemaining))
 			);
 		actionBar.addViewers(reviver);
+		actionBar.setTextVisible(true);
 		HypixelZombiesProject plugin = HypixelZombiesProject.getPlugin();
 		this.reviveTickingTaskID = plugin.getServer().getScheduler().scheduleSyncRepeatingTask(
 				plugin, () -> {
 					
-					actionBar.setTextVisible(false);
-					actionBar.editMessage(new ChatJsonBuilder().withText(String.format("Reviving %s %.1f", profileOwner.getName(), this.revRemaining)));
-					actionBar.setTextVisible(true);
 					hologram.setCustomName(String.format("Being revived %.1f ", this.revRemaining));
 					// player cancels revive
 					if (!reviver.isSneaking()) {
@@ -131,10 +154,11 @@ public class PlayerDeathRule {
 						return;
 					}
 					this.revRemaining -= 0.1f;
-					
+					actionBar.editMessage(new ChatJsonBuilder().withText(String.format("Reviving %s %.1f", profileOwner.getName(), this.revRemaining)));
 					// player revived
 					if (this.revRemaining <= 0f) {
-
+						
+						profileOwner.teleport(profileOwner.getLocation().add(0,  2.5, 0));
 						HypixelZombiesProject.getSchedular().cancelTask(reviveTickingTaskID);
 						GameProfile profile = GameRunningRule.getZombies().getInGamePlayers().get(profileOwner.getUniqueId());
 						profile.playerState = PlayerState.IN_GAME_ALIVE;
@@ -151,7 +175,9 @@ public class PlayerDeathRule {
 						
 						actionBar.setTextVisible(false);
 						
+						
 						hologram.remove();
+						vehicle.remove();
 						
 						return;
 					}

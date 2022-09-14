@@ -15,65 +15,51 @@ import net.minecraft.server.v1_12_R1.PacketPlayOutTitle;
 public class ActionBarConstructor {
 	
 	private int counterTaskID = -1;
-	private boolean disable = true;
+	private boolean visible = false;
 	private ChatJsonBuilder json;
 	private final List<Player> viewers;
-	private final Runnable runnable;
 	
 	private ActionBarConstructor(ChatJsonBuilder message) {
 		
 		this.viewers = new ArrayList<Player>();
 		this.json = message;
 		
-		
-		HypixelZombiesProject plugin = HypixelZombiesProject.getPlugin();
-		BukkitScheduler schedular = plugin.getServer().getScheduler();
-		final ActionBarConstructor cc = this;
-		this.runnable = new Runnable() {
-			
-			@Override
-			public void run() {
-				
-				IChatBaseComponent cbc = IChatBaseComponent.ChatSerializer.a(json.toString());
-				IChatBaseComponent emptyChat = IChatBaseComponent.ChatSerializer.a((String)("{\"text\": \"\"}"));
-				
-				PacketPlayOutChat text = new PacketPlayOutChat(cbc, ChatMessageType.a((byte) 2));
-				PacketPlayOutChat empty = new PacketPlayOutChat(emptyChat, ChatMessageType.a((byte) 2));
-				
-				if (cc.disable && cc.counterTaskID != -1) {
-					cc.viewers.forEach( player -> {
-						((CraftPlayer)player).getHandle().playerConnection.sendPacket(empty);
-					});
-					schedular.cancelTask(cc.counterTaskID);
-					return;
-				}
-
-				cc.viewers.forEach( player -> {
-					((CraftPlayer)player).getHandle().playerConnection.sendPacket(text);
-				});
-				
-			}
-			
-		};
-		
 	}
 	
 	public void editMessage (ChatJsonBuilder msg) {
 		this.json = msg;
 	}
+	
 	public void setTextVisible(boolean visible) {
 		
-		if (!visible) {
-			this.disable = true;
+		if (this.visible == visible) {
 			return;
 		}
+		this.visible = visible;
 		
-		if (!this.disable)
-			return;
-		this.disable = false;
-		HypixelZombiesProject plugin = HypixelZombiesProject.getPlugin();
-		BukkitScheduler schedular = plugin.getServer().getScheduler();
-		this.counterTaskID = schedular.scheduleSyncRepeatingTask(plugin, this.runnable, 0, 1);
+		if (!visible) {
+			if (this.counterTaskID != -1) {
+				HypixelZombiesProject.getSchedular().cancelTask(this.counterTaskID);
+				this.counterTaskID = -1;
+			}
+			IChatBaseComponent emptyChat = IChatBaseComponent.ChatSerializer.a((String)("{\"text\": \"\"}"));
+			PacketPlayOutChat empty = new PacketPlayOutChat(emptyChat, ChatMessageType.a((byte) 2));
+			this.viewers.forEach( player -> {
+				((CraftPlayer)player).getHandle().playerConnection.sendPacket(empty);
+			});
+		} else {
+			HypixelZombiesProject plugin = HypixelZombiesProject.getPlugin();
+			BukkitScheduler schedular = plugin.getServer().getScheduler();
+			this.counterTaskID = schedular.scheduleSyncRepeatingTask(plugin, 
+					() -> {
+						IChatBaseComponent cbc = IChatBaseComponent.ChatSerializer.a(json.toString());
+						PacketPlayOutChat text = new PacketPlayOutChat(cbc, ChatMessageType.a((byte) 2));
+						ActionBarConstructor.this.viewers.forEach( player -> {
+							((CraftPlayer)player).getHandle().playerConnection.sendPacket(text);
+						});
+					}, 0, 1);
+		}
+		
 		
 	}
 	
@@ -97,8 +83,8 @@ public class ActionBarConstructor {
 	
 	public static void sendTitle(Player player, ChatJsonBuilder msgTitle, ChatJsonBuilder msgSubTitle, float durationSec) {
 		
-		IChatBaseComponent chatTitle = IChatBaseComponent.ChatSerializer.a((String)("{\"text\": \"" + msgTitle + "\"}"));
-		IChatBaseComponent chatSubTitle = IChatBaseComponent.ChatSerializer.a((String)("{\"text\": \"" + msgSubTitle + "\"}"));
+		IChatBaseComponent chatTitle = IChatBaseComponent.ChatSerializer.a(msgTitle.toString());
+		IChatBaseComponent chatSubTitle = IChatBaseComponent.ChatSerializer.a(msgSubTitle.toString());
 		PacketPlayOutTitle p = new PacketPlayOutTitle(PacketPlayOutTitle.EnumTitleAction.TITLE, chatTitle);
 		PacketPlayOutTitle p2 = new PacketPlayOutTitle(PacketPlayOutTitle.EnumTitleAction.SUBTITLE, chatSubTitle);
 		((CraftPlayer)player).getHandle().playerConnection.sendPacket(p);
@@ -144,35 +130,5 @@ public class ActionBarConstructor {
 		};
 		cc.counterTaskID = schedular.scheduleSyncRepeatingTask(plugin, r, 0, 1);
 		
-	}
-	
-	public static ActionBarConstructor sendActionBar(Player player, ChatJsonBuilder message) {
-		
-		IChatBaseComponent cbc = IChatBaseComponent.ChatSerializer.a(message.toString());
-		IChatBaseComponent emptyChat = IChatBaseComponent.ChatSerializer.a((String)("{\"text\": \"\"}"));
-		
-		PacketPlayOutChat text = new PacketPlayOutChat(cbc, ChatMessageType.a((byte) 2));
-		PacketPlayOutChat empty = new PacketPlayOutChat(emptyChat, ChatMessageType.a((byte) 2));
-		
-		HypixelZombiesProject plugin = HypixelZombiesProject.getPlugin();
-		BukkitScheduler schedular = plugin.getServer().getScheduler();
-		final ActionBarConstructor cc = new ActionBarConstructor(message);
-		Runnable r = new Runnable() {
-			
-			@Override
-			public void run() {
-				
-				if (cc.disable && cc.counterTaskID != -1) {
-					((CraftPlayer)player).getHandle().playerConnection.sendPacket(empty);
-					schedular.cancelTask(cc.counterTaskID);
-					return;
-				}
-				((CraftPlayer)player).getHandle().playerConnection.sendPacket(text);
-				
-			}
-			
-		};
-		cc.counterTaskID = schedular.scheduleSyncRepeatingTask(plugin, r, 0, 1);
-		return cc;
 	}
 }

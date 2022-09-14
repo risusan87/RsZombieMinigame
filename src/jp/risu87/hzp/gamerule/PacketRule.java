@@ -5,6 +5,7 @@ import com.comphenix.protocol.events.ListenerPriority;
 import com.comphenix.protocol.events.PacketAdapter;
 import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.events.PacketListener;
+import com.comphenix.protocol.wrappers.EnumWrappers.ChatType;
 
 import jp.risu87.hzp.HypixelZombiesProject;
 
@@ -14,6 +15,7 @@ public class PacketRule {
 	
 	private final PacketAdapter packetParticle;
 	private final PacketAdapter packetSound;
+	private final PacketAdapter packetActionBar;
 	
 	public PacketRule() {
 		
@@ -52,8 +54,21 @@ public class PacketRule {
 				}
 		};
 		
+		this.packetActionBar = new PacketAdapter(
+				HypixelZombiesProject.getPlugin(),
+				ListenerPriority.NORMAL,
+				PacketType.Play.Server.CHAT
+			) {
+				@Override
+				public void onPacketSending(PacketEvent event) {
+					ChatType type = event.getPacket().getChatTypes().read(0);
+					System.out.println(type);
+				}
+		};
+		
 		HypixelZombiesProject.getPlugin().getProtocolManager().addPacketListener(this.packetParticle);
 		HypixelZombiesProject.getPlugin().getProtocolManager().addPacketListener(this.packetSound);
+		HypixelZombiesProject.getPlugin().getProtocolManager().addPacketListener(this.packetActionBar);
 		
 	}
 	

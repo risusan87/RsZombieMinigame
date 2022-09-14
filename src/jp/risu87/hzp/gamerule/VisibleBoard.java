@@ -51,13 +51,13 @@ public class VisibleBoard {
 		waitBoard.setLine(3, "" + ChatColor.WHITE + "Waiting...");
 		waitBoard.setLine(1, "" + ChatColor.YELLOW + "quintistic.net");
 		
-		ingameBoard.setLine(15, "ivg");
+		ingameBoard.setLine(15, " ");
 		ingameBoard.setLine(13, "" + ChatColor.RED + ChatColor.BOLD + "Round " + ingameRound);
 		ingameBoard.setLine(12, "" + ChatColor.WHITE + "Zombies Left: " + ChatColor.GREEN + ingameZombiesLeft);
-		ingameBoard.setLine(10, "" + ChatColor.WHITE + "Shirokuma_Risu: " + ChatColor.GOLD + "TENSAI");
-		ingameBoard.setLine(9, "" + ChatColor.WHITE + "Quint1220: " + ChatColor.RED + "AHO");
-		ingameBoard.setLine(8, "" + ChatColor.GRAY + "EMPTY");
-		ingameBoard.setLine(7, "" + ChatColor.GRAY + "EMPTY ");
+		ingameBoard.setLine(10, "" + ChatColor.WHITE + "Shirokuma_Risu: " + ChatColor.GOLD + "0");
+		ingameBoard.setLine(9, "" + ChatColor.WHITE + "EMPTY");
+		ingameBoard.setLine(8, "" + ChatColor.GRAY + "EMPTY ");
+		ingameBoard.setLine(7, "" + ChatColor.GRAY + "EMPTY  ");
 		ingameBoard.setLine(5, "" + ChatColor.WHITE + "Zombie Kills: " + ChatColor.GREEN + "114,514");
 		ingameBoard.setLine(4, "" + ChatColor.WHITE + "Time: " + ChatColor.GREEN + toTime(ingameTimer));
 		ingameBoard.setLine(3, "" + ChatColor.WHITE + "Map: " + ChatColor.GREEN + mapName);
