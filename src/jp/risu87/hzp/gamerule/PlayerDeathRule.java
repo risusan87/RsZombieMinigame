@@ -49,6 +49,7 @@ public class PlayerDeathRule {
 	
 	private ArmorStand hologram;
 	private ArmorStand vehicle;
+	private ArmorStand vehicle2;
 	
 	public void knockdownPlayer(UUID p) {
 
@@ -71,7 +72,7 @@ public class PlayerDeathRule {
 			hologram.setCustomNameVisible(true);
 			
 			vehicle = (ArmorStand)profileOwner.getWorld().spawnEntity(baseLoc.clone().add(0, -2.5, 0), EntityType.ARMOR_STAND);
-			((CraftEntity)hologram).getHandle().setInvisible(true);
+			((CraftEntity)vehicle).getHandle().setInvisible(true);
 			vehicle.setGravity(false);
 			
 			vehicle.setPassenger(profileOwner);

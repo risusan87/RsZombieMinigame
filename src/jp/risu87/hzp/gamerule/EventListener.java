@@ -83,7 +83,15 @@ public class EventListener implements Listener {
 	
 	@EventHandler
 	public void onPlayerLeave(PlayerQuitEvent event) {
-		
+		PlayerState state = GameRunningRule.getZombies().getInGamePlayers().get(event.getPlayer().getUniqueId()).playerState;
+		if (
+				state == PlayerState.IN_GAME_ALIVE ||
+				state == PlayerState.IN_GAME_DEAD ||
+				state == PlayerState.IN_GAME_DOWN
+		) {
+			GameRunningRule.getZombies().getInGamePlayers().get(event.getPlayer().getUniqueId()).playerState = PlayerState.IN_GAME_QUIT;
+			return;
+		}
 	}
 	
 	@EventHandler
@@ -111,6 +119,12 @@ public class EventListener implements Listener {
 		}
 	}
 	
-	
+	public void onPlayerShift(PlayerToggleSneakEvent event) {
+		
+		if (GameRunningRule.getZombies().getInGamePlayers().get(event.getPlayer().getUniqueId()).playerState == PlayerState.IN_GAME_DOWN) {
+			event.setCancelled(true);
+		}
+		
+	}
 	
 }

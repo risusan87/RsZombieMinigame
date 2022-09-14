@@ -15,6 +15,7 @@ import org.bukkit.scoreboard.Scoreboard;
 
 import jp.risu87.hzp.HypixelZombiesProject;
 import jp.risu87.hzp.gamerule.GameStateRule.GameProfile;
+import jp.risu87.hzp.gamerule.GameStateRule.PlayerState;
 
 public class VisibleBoard {
 
@@ -108,6 +109,10 @@ public class VisibleBoard {
 	public void setVisibleBoard(BoardType type) {
 		this.currentBoard = type;
 		GameRunningRule.getZombies().getInGamePlayers().forEach((uuid, profile) -> {
+			
+			if (Bukkit.getPlayer(uuid) == null) 
+				return;
+			
 			Scoreboard sb; 
 			if (type != BoardType.INVISIBLE) 
 				sb = VisibleBoard.getBoard().boardMap.get(type).getScoreboard();
